@@ -98,6 +98,40 @@ textarea{resize:vertical;min-height:88px}
 .msg .ko{border-top:1px dashed currentColor;margin-top:6px;padding-top:6px;font-size:13px;opacity:.9}
 .composer{position:sticky;bottom:calc(60px + env(safe-area-inset-bottom,0px));background:var(--bg);padding-top:10px;display:flex;flex-direction:column;gap:8px}
 .staff .composer{position:static}
+.chat{display:flex;flex-direction:column;gap:12px}
+.chat-head{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.chat-head b{font-family:var(--f-display);font-size:16px;letter-spacing:.03em}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--night);color:var(--accent);display:grid;place-items:center;flex:none}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--good);margin-right:6px}
+.chat .msgs{gap:3px;padding-block:4px}
+.day{align-self:center;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:2px 14px;margin-block:10px 6px}
+.sysm{align-self:center;max-width:92%;text-align:center;font-size:12.5px;line-height:1.55;color:var(--muted);background:var(--tint);border-radius:14px;padding:7px 14px;margin-block:8px}
+.cm{display:flex;align-items:flex-end;gap:8px;max-width:100%}
+.cm.me{justify-content:flex-end}
+.cm .av{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center}
+.cm .av.on{background:var(--night);color:var(--accent)}
+.cm .col{display:flex;flex-direction:column;min-width:0;max-width:78%}
+.cm.me .col{align-items:flex-end}
+.who{font-size:11.5px;color:var(--muted);margin:8px 0 3px 4px}
+.bub{padding:10px 15px;border-radius:20px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}
+.cm.me .bub{background:var(--accent);color:var(--accent-ink)}
+.cm.them .bub{background:var(--surface);border:1px solid var(--line)}
+.cm.me:not(.ge) .bub{border-bottom-right-radius:6px} .cm.me:not(.gs) .bub{border-top-right-radius:6px}
+.cm.them:not(.ge) .bub{border-bottom-left-radius:6px} .cm.them:not(.gs) .bub{border-top-left-radius:6px}
+.bub img{display:block;width:210px;max-width:100%;border-radius:14px;cursor:zoom-in}
+.bub img + span{display:block;margin-top:8px}
+.meta{font-size:11px;color:var(--muted);margin:3px 6px 8px;display:flex;gap:6px;align-items:center}
+.quick{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.quick .chip{white-space:nowrap;font-size:13px;min-height:34px;padding:5px 13px;flex:none}
+.cbar{position:sticky;bottom:calc(58px + env(safe-area-inset-bottom,0px));background:var(--bg);padding-block:8px 4px;display:flex;flex-direction:column;gap:8px;z-index:5}
+.cin{display:flex;align-items:flex-end;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:6px}
+.cin:focus-within{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.cin textarea{flex:1;min-width:0;border:0;outline:0;background:transparent;min-height:40px;max-height:140px;padding:9px 6px;resize:none;border-radius:0;line-height:1.5}
+.iconbtn{width:42px;height:42px;border-radius:50%;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn.send{background:var(--accent);color:var(--accent-ink)}
+.legal-line{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.5}
+@media (prefers-reduced-motion:no-preference){.live{animation:pulse 2s ease-in-out infinite}@keyframes pulse{50%{opacity:.35}}}
 .slot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
 .split{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
 @media (max-width:820px){.split{grid-template-columns:1fr}.split.has-sel .list{display:none}.split:not(.has-sel) .detail{display:none}}
@@ -333,18 +367,34 @@ function pResult() {
 
 /* --- chat --- */
 function pChat() {
-  return `<div class="stack"><div class="notice legal small">診断・処方は行いません。最終判断は対面診察で行います。</div><div class="msgs" id="msgs"></div>
-    <div class="composer"><textarea id="pmsg" placeholder="メッセージを入力" style="min-height:64px"></textarea>
-      <div class="row"><label class="btn ghost sm" for="cphoto" style="cursor:pointer">写真を添付</label><input type="file" id="cphoto" accept="image/*" hidden>
-      <button class="btn" data-act="psend" style="margin-left:auto">送信</button></div></div></div>`;
+  const qs = ['ダウンタイムはどのくらい？', '費用を詳しく知りたい', '滞在は何日必要ですか？', '写真を追加で送りたい'];
+  return `<div class="chat">
+    <div class="chat-head"><span class="avatar">${star(22)}</span><div><b>별성형외과 相談チーム</b><div class="small muted"><i class="live"></i>通常24時間以内にお返事します</div></div></div>
+    <div class="msgs" id="msgs"></div>
+    <div class="cbar"><div class="quick">${qs.map((q, i) => `<button class="chip" data-act="quick" data-v="${i}">${q}</button>`).join('')}</div>
+      <div class="cin"><label class="iconbtn" for="cphoto" title="写真を添付" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-8 9"/></svg></label><input type="file" id="cphoto" accept="image/*" hidden>
+      <textarea id="pmsg" rows="1" placeholder="メッセージを入力" aria-label="メッセージ"></textarea>
+      <button class="iconbtn send" data-act="psend" aria-label="送信"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>
+      <div class="legal-line">診断・処方は行いません。最終判断は対面診察で行います。</div></div></div>`;
 }
+const QUICK = ['ダウンタイムはどのくらいですか？', '費用を詳しく知りたいです。', '滞在は何日必要ですか？', '写真を追加で送りたいです。'];
 function paintMsgs() {
   const el = $('#msgs'); if (!el) return;
-  el.innerHTML = P.msgs.map(m => {
-    if (m.kind === 'sys') return `<div class="msg sys">${esc(m.ja)}</div>`;
-    const me = m.from === 'patient';
-    return `<div class="msg ${me ? 'me' : 'them'}">${m.photo ? `<img src="${m.photo}" alt="添付写真" data-act="zoomsrc">` : ''}${esc(m.ja || m.text)}<div class="t">${fmt(m.at)}</div></div>`;
-  }).join('');
+  const ms = P.msgs; let html = '', lastDay = '';
+  const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  ms.forEach((m, i) => {
+    const d = new Date(m.at), day = `${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+    if (day !== lastDay) { html += `<div class="day">${day}</div>`; lastDay = day; }
+    if (m.kind === 'sys') { html += `<div class="sysm">${esc(m.ja)}</div>`; return; }
+    const same = o => o && o.kind !== 'sys' && o.from === m.from && new Date(o.at).toDateString() === d.toDateString();
+    const gs = !same(ms[i - 1]), ge = !same(ms[i + 1]), me = m.from === 'patient';
+    const tri = m.aftercare ? `<span class="badge ${TRI[m.aftercare].cls}">${TRI[m.aftercare].ja}</span>` : '';
+    const text = esc(m.ja || m.text);
+    html += `<div class="cm ${me ? 'me' : 'them'} ${gs ? 'gs' : ''} ${ge ? 'ge' : ''}">${me ? '' : `<span class="av ${ge ? 'on' : ''}">${ge ? star(15) : ''}</span>`}
+      <div class="col">${!me && gs ? '<div class="who">별성형외과 スタッフ</div>' : ''}<div class="bub">${m.photo ? `<img src="${m.photo}" alt="添付写真" data-act="zoomsrc">` : ''}${text ? (m.photo ? `<span>${text}</span>` : text) : ''}</div>
+      ${ge ? `<div class="meta">${tri}${hm(d)}</div>` : ''}</div></div>`;
+  });
+  el.innerHTML = html;
   window.scrollTo({ top: document.body.scrollHeight });
   if (P.c?.unreadPatient) markReadOnce();
 }
@@ -505,6 +555,7 @@ function sPrices() {
    events
 ===================================================================== */
 document.addEventListener('input', e => {
+  if (e.target.id === 'pmsg') { e.target.style.height = 'auto'; e.target.style.height = Math.min(140, e.target.scrollHeight) + 'px'; }
   const k = e.target.dataset?.bind; if (!k) return;
   const v = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
   if (route().view === 'staff') { ST[k] = v; return; }
@@ -538,7 +589,8 @@ document.addEventListener('click', async e => {
   else if (a === 'clrphoto') { f.photos = []; renderPatient(); }
   else if (a === 'submit') submitCase();
   else if (a === 'tab') { P.tab = v; renderPatient(); window.scrollTo(0, 0); if (v === 'chat' && P.c?.unreadPatient) markReadOnce(); }
-  else if (a === 'psend') { const t = $('#pmsg'); const x = t.value; t.value = ''; await sendPatient(x); }
+  else if (a === 'psend') { const t = $('#pmsg'); const x = t.value; t.value = ''; t.style.height = 'auto'; await sendPatient(x); }
+  else if (a === 'quick') { const t = $('#pmsg'); t.value = QUICK[+v]; t.dispatchEvent(new Event('input', { bubbles: true })); t.focus(); }
   else if (a === 'day') { P.slotDay = v; renderPatient(); } else if (a === 'time') { P.slotTime = v; renderPatient(); }
   else if (a === 'reqslot') requestSlot();
   else if (a === 'rebook') { await store.requestSlot(null); }
