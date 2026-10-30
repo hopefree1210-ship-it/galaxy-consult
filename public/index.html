@@ -130,6 +130,9 @@ textarea{resize:vertical;min-height:88px}
 .cin textarea{flex:1;min-width:0;border:0;outline:0;background:transparent;min-height:40px;max-height:140px;padding:9px 6px;resize:none;border-radius:0;line-height:1.5}
 .iconbtn{width:42px;height:42px;border-radius:50%;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:none}
 .iconbtn.send{background:var(--accent);color:var(--accent-ink)}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden;flex:none}
+.lang button{background:none;border:0;color:var(--night-ink);opacity:.75;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;min-height:30px}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);opacity:1}
 .legal-line{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.5}
 @media (prefers-reduced-motion:no-preference){.live{animation:pulse 2s ease-in-out infinite}@keyframes pulse{50%{opacity:.35}}}
 .slot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
@@ -180,25 +183,28 @@ const DEFAULT_PROCS = [
   { id: 'laser', ja: '肌・レーザー', ko: '피부/레이저', surg: false, min: 10, max: 50, stay: 1 },
 ];
 const DEFAULT_CFG = { rate: 0.105, procs: DEFAULT_PROCS };
-const BUDGETS = ['〜30万円', '30〜70万円', '70〜150万円', '150万円〜', '未定'];
-const VISITS = ['1か月以内', '2〜3か月以内', '半年以内', '未定'];
-const AGES = ['10代', '20代', '30代', '40代', '50代以上'];
+const BUDGETS = [['〜30万円', 'Under ¥300k'], ['30〜70万円', '¥300k–700k'], ['70〜150万円', '¥700k–1.5M'], ['150万円〜', '¥1.5M or more'], ['未定', 'Not decided']];
+const VISITS = [['1か月以内', 'Within 1 month'], ['2〜3か月以内', 'Within 2–3 months'], ['半年以内', 'Within 6 months'], ['未定', 'Not decided']];
+const AGES = [['10代', 'Teens'], ['20代', '20s'], ['30代', '30s'], ['40代', '40s'], ['50代以上', '50s or older']];
+const BUDGET_EN = Object.fromEntries(BUDGETS), VISIT_EN = Object.fromEntries(VISITS), AGE_EN = Object.fromEntries(AGES);
+const PROC_EN = { maibotsu: 'Double eyelid (suture)', sekkai: 'Double eyelid (incisional)', megashira: 'Epicanthoplasty / lateral canthoplasty', hana: 'Nose surgery',
+  rinkaku: 'Facial contouring', shibo: 'Facial liposuction', lift: 'Lifting', botox: 'Botox / fillers', laser: 'Skin / laser' };
 const CONSENT_JA = '本オンライン相談は診断・治療ではなく、情報提供と来院前の事前相談を目的としています。最終的な診断・治療方針は、韓国での対面診察で決定されます。薬の処方や診断書の発行は行いません。';
+const CONSENT_EN = 'This online consultation is for information and pre-visit guidance, not for diagnosis or treatment. Final diagnosis and treatment plans are decided at an in-person examination in Korea. We do not prescribe medication or issue medical certificates.';
 const SYMPTOMS = [
-  { id: 'fever', ja: '38℃以上の発熱', lv: 2 }, { id: 'bleed', ja: '止まらない出血', lv: 2 },
-  { id: 'pus', ja: '膿・悪臭のある分泌物', lv: 2 }, { id: 'vision', ja: '視力の変化・強いしびれ', lv: 2 },
-  { id: 'pain', ja: '薬でも治まらない強い痛み', lv: 2 }, { id: 'spread', ja: '腫れが日ごとに強くなっている', lv: 1 },
-  { id: 'red', ja: '赤み・熱っぽさが続く', lv: 1 }, { id: 'asym', ja: '左右差が気になる', lv: 1 },
-  { id: 'bruise', ja: '内出血・あざ', lv: 0 }, { id: 'swell', ja: '軽い腫れ', lv: 0 },
+  { id: 'fever', ja: '38℃以上の発熱', en: 'Fever of 38°C (100.4°F) or higher', lv: 2 }, { id: 'bleed', ja: '止まらない出血', en: 'Bleeding that won’t stop', lv: 2 },
+  { id: 'pus', ja: '膿・悪臭のある分泌物', en: 'Pus or foul-smelling discharge', lv: 2 }, { id: 'vision', ja: '視力の変化・強いしびれ', en: 'Vision changes or strong numbness', lv: 2 },
+  { id: 'pain', ja: '薬でも治まらない強い痛み', en: 'Severe pain not eased by medication', lv: 2 }, { id: 'spread', ja: '腫れが日ごとに強くなっている', en: 'Swelling getting worse each day', lv: 1 },
+  { id: 'red', ja: '赤み・熱っぽさが続く', en: 'Persistent redness or warmth', lv: 1 }, { id: 'asym', ja: '左右差が気になる', en: 'Noticeable asymmetry', lv: 1 },
+  { id: 'bruise', ja: '内出血・あざ', en: 'Bruising', lv: 0 }, { id: 'swell', ja: '軽い腫れ', en: 'Mild swelling', lv: 0 },
 ];
 const TEMPLATES = [
-  { ko: '첫 인사', ja: 'ご相談ありがとうございます。별성형외과の相談担当です。お送りいただいた内容を確認しました。いくつか確認させていただきますので、このチャットでお答えください。' },
-  { ko: '사진 추가 요청', ja: '正面・左右45度・横顔の写真を、メイクなし・明るい場所で追加でお送りいただけますか？より正確な目安をご案内できます。' },
-  { ko: '비용 안내 주의', ja: 'ご案内した金額は事前相談時点の目安です。実際の費用は、来院時の診察で確定し、確定後に追加費用が発生しないようご説明します。' },
-  { ko: '화상상담 제안', ja: '詳しい内容は医師とのビデオ相談でご説明できます。アプリの「予約」タブからご希望の日時をお選びください。' },
-  { ko: '수술 후 사진 요청', ja: '術後の経過を確認するため、患部の写真を「術後ケア」タブからお送りください。症状もあわせてご入力ください。' },
+  { ko: '첫 인사', ja: 'ご相談ありがとうございます。별성형외과の相談担当です。お送りいただいた内容を確認しました。いくつか確認させていただきますので、このチャットでお答えください。', en: 'Thank you for your inquiry. This is the consultation team at 별성형외과. We have reviewed what you sent and have a few questions. Please reply here in this chat.' },
+  { ko: '사진 추가 요청', ja: '正面・左右45度・横顔の写真を、メイクなし・明るい場所で追加でお送りいただけますか？より正確な目安をご案内できます。', en: 'Could you send additional photos: front, 45° left and right, and side profile, without makeup and in bright light? This helps us give a more accurate estimate.' },
+  { ko: '비용 안내 주의', ja: 'ご案内した金額は事前相談時点の目安です。実際の費用は、来院時の診察で確定し、確定後に追加費用が発生しないようご説明します。', en: 'The amount we shared is an estimate at the pre-consultation stage. The actual cost is confirmed at your in-person examination, and we will explain it so that no additional charges arise after confirmation.' },
+  { ko: '화상상담 제안', ja: '詳しい内容は医師とのビデオ相談でご説明できます。アプリの「予約」タブからご希望の日時をお選びください。', en: 'We can explain the details in a video consultation with our doctor. Please choose your preferred date and time from the "Video" tab in the app.' },
+  { ko: '수술 후 사진 요청', ja: '術後の経過を確認するため、患部の写真を「術後ケア」タブからお送りください。症状もあわせてご入力ください。', en: 'To check your recovery, please send a photo of the area from the "Aftercare" tab, along with any symptoms.' },
 ];
-
 /* ---------- store: 서버 API (폴링) ---------- */
 const api = async (p, o = {}) => {
   const r = await fetch('/api' + p, { method: o.method || 'GET', credentials: 'same-origin',
@@ -225,6 +231,7 @@ const store = {
   login: password => api('/staff/login', { method: 'POST', body: { password } }),
   logout: () => api('/staff/logout', { method: 'POST', body: {} }),
   createCase: d => api('/cases', { method: 'POST', body: d }),
+  setLang: lang => api('/cases/' + P.caseId + '/lang', { method: 'POST', secret: secret(), body: { lang } }),
   markRead: () => api('/cases/' + P.caseId + '/read', { method: 'POST', secret: secret(), body: {} }),
   send: (text, photo) => api('/cases/' + P.caseId + '/messages', { method: 'POST', secret: secret(), body: { text, photo } }),
   requestSlot: at => api('/cases/' + P.caseId + '/meeting', { method: 'POST', secret: secret(), body: { at } }),
@@ -246,15 +253,16 @@ function estimate(ids) {
   const jp = v => Math.round(v * 10000 * cfg.rate / 10000) * 10000; // 万円単位
   return { krwMin: min, krwMax: max, jpyMin: jp(min), jpyMax: jp(max), stay: Math.max(1, ...ps.map(p => Number(p.stay))), surg: ps.some(p => p.surg) };
 }
-const yen = v => '¥' + Math.round(v / 10000).toLocaleString('ja-JP') + '万';
+const yenJa = v => '¥' + Math.round(v / 10000).toLocaleString('ja-JP') + '万';
+const yen = v => P.lang === 'en' ? '¥' + Math.round(v / 1000).toLocaleString('en-US') + 'k' : '¥' + Math.round(v / 10000).toLocaleString('ja-JP') + '万';
 function triage(symIds) {
   const lv = Math.max(-1, ...symIds.map(id => SYMPTOMS.find(s => s.id === id)?.lv ?? -1));
   return lv >= 2 ? 'alert' : lv === 1 ? 'caution' : 'normal';
 }
 const TRI = {
-  normal: { cls: 'good', ja: '順調な範囲の目安', ko: '정상 범위(참고)', msg: '現在の入力内容からは、回復経過の範囲内と考えられる目安です。冷却・安静・指示された薬の服用を続け、気になる変化があればいつでもこのチャットでお知らせください。' },
-  caution: { cls: 'warn', ja: '要確認', ko: '확인 필요', msg: 'スタッフが写真と症状を確認します。本日中にチャットで返信しますので、通知をご確認ください。症状が強くなった場合は、すぐにお知らせください。' },
-  alert: { cls: 'bad', ja: '至急確認', ko: '긴급 확인', msg: 'すぐにスタッフが確認します。このチャットに続けてご連絡ください。呼吸が苦しい・意識がぼんやりするなど緊急の場合は、お近くの救急（日本は119、韓国は119）に連絡してください。' },
+  normal: { cls: 'good', ja: '順調な範囲の目安', en: 'Within expected range', ko: '정상 범위(참고)', msg: '現在の入力内容からは、回復経過の範囲内と考えられる目安です。冷却・安静・指示された薬の服用を続け、気になる変化があればいつでもこのチャットでお知らせください。', msgEn: 'Based on what you entered, this looks like it is within the expected recovery range. Please continue cooling, resting and taking your prescribed medication, and tell us in this chat if you notice any change.' },
+  caution: { cls: 'warn', ja: '要確認', en: 'Needs review', ko: '확인 필요', msg: 'スタッフが写真と症状を確認します。本日中にチャットで返信しますので、通知をご確認ください。症状が強くなった場合は、すぐにお知らせください。', msgEn: 'Our staff will review your photo and symptoms and reply in the chat today. If your symptoms get worse, please tell us right away.' },
+  alert: { cls: 'bad', ja: '至急確認', en: 'Urgent review', ko: '긴급 확인', msg: 'すぐにスタッフが確認します。このチャットに続けてご連絡ください。呼吸が苦しい・意識がぼんやりするなど緊急の場合は、お近くの救急（日本は119、韓国は119）に連絡してください。', msgEn: 'Our staff will review this immediately. Please keep contacting us in this chat. In an emergency such as difficulty breathing or confusion, call local emergency services right away (119 in both Japan and Korea).' },
 };
 function shrink(file, max = 520, q = 0.62) {
   return new Promise((res, rej) => {
@@ -277,21 +285,31 @@ const route = () => { const h = (location.hash || '').replace('#', ''), q = new 
 window.addEventListener('hashchange', () => boot());
 
 /* =====================================================================
-   PATIENT APP (日本語)
+   PATIENT APP (JP / EN)
 ===================================================================== */
-const P = { step: 0, tab: 'result', form: { name: '', age: '', procs: [], concerns: '', budget: '', visit: '', history: '', contact: '', photos: [], consent: false },
+const initLang = () => { const q = new URLSearchParams(location.search).get('lang'); if (q === 'en' || q === 'ja') return q; const s = lsGet('galaxy_lang', null); if (s === 'en' || s === 'ja') return s; return (navigator.language || '').toLowerCase().startsWith('en') ? 'en' : 'ja'; };
+const P = { lang: 'ja', step: 0, tab: 'result', form: { name: '', age: '', procs: [], concerns: '', budget: '', visit: '', history: '', contact: '', photos: [], consent: false },
   caseId: lsGet('galaxy_case', null), c: null, msgs: [], unsubs: [], slotDay: null, slotTime: null, sym: [], dayN: '', aPhoto: null, busy: false };
+P.lang = initLang();
+const tx = (ja, en) => (P.lang === 'en' ? en : ja);
+const pn = p => tx(p.ja, PROC_EN[p.id] || p.ja);
+const WD = ['日', '月', '火', '水', '木', '金', '土'], WDE = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dayLabel = d => tx(`${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）`, `${MON[d.getMonth()]} ${d.getDate()} (${WDE[d.getDay()]})`);
+const consentText = () => tx(CONSENT_JA, CONSENT_EN);
+const opt = (list, cur) => `<option value="">${tx('選択してください', 'Select')}</option>` + list.map(([v, en]) => `<option value="${esc(v)}" ${cur === v ? 'selected' : ''}>${esc(tx(v, en))}</option>`).join('');
 
 function pHeader() {
-  return `<header class="top"><div class="brand">${star(18)}<span>GALAXY</span></div><div class="sub">별성형외과<br>オンライン事前相談</div></header>`;
+  return `<header class="top"><div class="brand">${star(18)}<span>GALAXY</span></div><div class="sub">별성형외과<br>${tx('オンライン事前相談', 'Online pre-consultation')}</div>
+    <div class="lang" role="group" aria-label="Language"><button data-act="lang" data-v="ja" aria-pressed="${P.lang === 'ja'}">JP</button><button data-act="lang" data-v="en" aria-pressed="${P.lang === 'en'}">EN</button></div></header>`;
 }
 function pTabs() {
   const unread = P.c?.unreadPatient;
-  const t = [['result', '相談内容', '☰'], ['chat', 'チャット', '✉'], ['book', 'ビデオ予約', '▶'], ['after', '術後ケア', '✚']];
+  const t = [['result', tx('相談内容', 'Overview'), '☰'], ['chat', tx('チャット', 'Chat'), '✉'], ['book', tx('ビデオ予約', 'Video'), '▶'], ['after', tx('術後ケア', 'Aftercare'), '✚']];
   return `<div class="tabbar"><div class="in">${t.map(([k, l, i]) => `<button data-act="tab" data-v="${k}" aria-current="${P.tab === k}"><span aria-hidden="true">${i}</span>${l}${k === 'chat' && unread && P.tab !== 'chat' ? '<span class="dot"></span>' : ''}</button>`).join('')}</div></div>`;
 }
 function renderPatient() {
-  const body = !P.caseId ? pIntake() : P.c ? ({ result: pResult, chat: pChat, book: pBook, after: pAfter }[P.tab])() : `<p class="muted">読み込み中…</p>`;
+  document.documentElement.lang = P.lang;
+  const body = !P.caseId ? pIntake() : P.c ? ({ result: pResult, chat: pChat, book: pBook, after: pAfter }[P.tab])() : `<p class="muted">${tx('読み込み中…', 'Loading…')}</p>`;
   $('#app').innerHTML = `<div class="wrap">${pHeader()}<main>${body}</main>${P.caseId && P.c ? pTabs() : ''}</div>`;
   if (P.tab === 'chat' && P.caseId) { paintMsgs(); }
 }
@@ -300,42 +318,43 @@ function renderPatient() {
 function pIntake() {
   const f = P.form, s = P.step;
   const bar = `<div class="steps">${[0, 1, 2, 3].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
+  const back = tx('戻る', 'Back'), next = tx('次へ', 'Next');
   if (s === 0) return `<div class="stack">
     <section class="hero">${`<span class="star">${star(110)}</span>`}
-      <h1>来韓前に、<br>病院と直接ご相談。</h1>
-      <p>仲介業者を通さず、별성형외과のスタッフと日本語でやりとりできます。気になる施術と写真を送るだけ。費用の目安がその場でわかります。</p></section>
-    <div class="card stack"><h3 class="disp">ご利用の流れ</h3>
-      <ol style="margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px"><li>希望の施術とお悩みを選ぶ</li><li>写真を送る（任意・最大3枚）</li><li>費用と滞在日数の目安を確認</li><li>チャット、またはビデオで医師スタッフに相談</li></ol></div>
-    <div class="notice legal">${CONSENT_JA}</div>
-    <label class="row" style="align-items:flex-start;gap:10px;cursor:pointer"><input type="checkbox" id="consent" data-bind="consent" ${f.consent ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span>上記の内容と、お預かりした写真・個人情報を相談対応の目的で韓国の病院が取り扱うことに同意します。</span></label>
-    <button class="btn block" data-act="next" ${f.consent ? '' : 'disabled'}>相談をはじめる</button></div>`;
-  if (s === 1) return `${bar}<div class="stack"><h2 class="disp">ご希望の施術</h2><p class="muted small" style="margin:-6px 0 0">複数選べます。迷っている場合は「お悩み」に書いてください。</p>
-    <div class="chips">${cfg.procs.map(p => `<button class="chip" data-act="proc" data-v="${p.id}" aria-pressed="${f.procs.includes(p.id)}">${esc(p.ja)}</button>`).join('')}</div>
-    <label class="f">お悩み・理想のイメージ<textarea id="concerns" data-bind="concerns" placeholder="例：自然な二重にしたい。腫れが引くまでの期間が心配です。">${esc(f.concerns)}</textarea></label>
-    <div class="row"><button class="btn ghost" data-act="back">戻る</button><button class="btn" data-act="next" ${f.procs.length ? '' : 'disabled'} style="flex:1">次へ</button></div></div>`;
-  if (s === 2) return `${bar}<div class="stack"><h2 class="disp">写真とご予定</h2>
-    <div><div class="muted small" style="margin-bottom:6px">お顔の写真（任意・最大3枚）。メイクなし・明るい場所で、正面と斜めがおすすめです。</div>
-      <div class="photos">${[0, 1, 2].map(i => f.photos[i] ? `<img src="${f.photos[i]}" alt="写真${i + 1}" data-act="zoom" data-src="${i}">` : `<label class="ph" for="pf">＋ 追加</label>`).join('')}</div>
-      <input type="file" id="pf" accept="image/*" multiple hidden>${f.photos.length ? `<button class="btn ghost sm" data-act="clrphoto" style="margin-top:8px">写真を削除</button>` : ''}</div>
-    <label class="f">年代<select id="age" data-bind="age"><option value="">選択してください</option>${AGES.map(a => `<option ${f.age === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
-    <label class="f">ご予算の目安<select id="budget" data-bind="budget"><option value="">選択してください</option>${BUDGETS.map(a => `<option ${f.budget === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
-    <label class="f">来韓予定時期<select id="visit" data-bind="visit"><option value="">選択してください</option>${VISITS.map(a => `<option ${f.visit === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
-    <label class="f">既往歴・アレルギー・服用中の薬（あれば）<textarea id="history" data-bind="history" placeholder="例：麻酔でかゆみが出たことがあります">${esc(f.history)}</textarea></label>
-    <div class="row"><button class="btn ghost" data-act="back">戻る</button><button class="btn" data-act="next" ${f.age && f.budget && f.visit ? '' : 'disabled'} style="flex:1">次へ</button></div></div>`;
-  return `${bar}<div class="stack"><h2 class="disp">ご連絡先</h2>
-    <label class="f">お名前（ニックネーム可）<input type="text" id="name" data-bind="name" value="${esc(f.name)}" autocomplete="nickname"></label>
-    <label class="f">LINE ID またはメールアドレス<input type="text" id="contact" data-bind="contact" value="${esc(f.contact)}" autocomplete="email"></label>
-    <p class="muted small" style="margin:0">お返事はこのアプリのチャットでお知らせします。通知用の連絡先は、スタッフからの確認にのみ使用します。</p>
-    <div class="row"><button class="btn ghost" data-act="back">戻る</button><button class="btn" data-act="submit" ${f.name.trim() && f.contact.trim() && !P.busy ? '' : 'disabled'} style="flex:1">${P.busy ? '送信中…' : '送信して目安を見る'}</button></div></div>`;
+      <h1>${tx('来韓前に、<br>病院と直接ご相談。', 'Talk directly with the clinic<br>before you travel to Korea.')}</h1>
+      <p>${tx('仲介業者を通さず、별성형외과のスタッフと日本語でやりとりできます。気になる施術と写真を送るだけ。費用の目安がその場でわかります。', 'Chat with 별성형외과 staff without going through an agent. Choose your treatments, send photos, and see an estimate of cost and stay length right away.')}</p></section>
+    <div class="card stack"><h3 class="disp">${tx('ご利用の流れ', 'How it works')}</h3>
+      <ol style="margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px">${tx('<li>希望の施術とお悩みを選ぶ</li><li>写真を送る（任意・最大3枚）</li><li>費用と滞在日数の目安を確認</li><li>チャット、またはビデオで医師スタッフに相談</li>', '<li>Choose your treatments and concerns</li><li>Send photos (optional, up to 3)</li><li>See estimates for cost and length of stay</li><li>Chat or video-call the clinic’s medical staff</li>')}</ol></div>
+    <div class="notice legal">${consentText()}</div>
+    <label class="row" style="align-items:flex-start;gap:10px;cursor:pointer"><input type="checkbox" id="consent" data-bind="consent" ${f.consent ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span>${tx('上記の内容と、お預かりした写真・個人情報を相談対応の目的で韓国の病院が取り扱うことに同意します。', 'I agree to the above, and to 별성형외과 handling my photos and personal information in Korea for the purpose of this consultation.')}</span></label>
+    <button class="btn block" data-act="next" ${f.consent ? '' : 'disabled'}>${tx('相談をはじめる', 'Start consultation')}</button></div>`;
+  if (s === 1) return `${bar}<div class="stack"><h2 class="disp">${tx('ご希望の施術', 'Treatments you’re interested in')}</h2><p class="muted small" style="margin:-6px 0 0">${tx('複数選べます。迷っている場合は「お悩み」に書いてください。', 'You can choose several. If you’re unsure, describe it under “Concerns”.')}</p>
+    <div class="chips">${cfg.procs.map(p => `<button class="chip" data-act="proc" data-v="${p.id}" aria-pressed="${f.procs.includes(p.id)}">${esc(pn(p))}</button>`).join('')}</div>
+    <label class="f">${tx('お悩み・理想のイメージ', 'Concerns and the look you want')}<textarea id="concerns" data-bind="concerns" placeholder="${tx('例：自然な二重にしたい。腫れが引くまでの期間が心配です。', 'e.g. I want a natural double eyelid. I’m worried about how long the swelling lasts.')}">${esc(f.concerns)}</textarea></label>
+    <div class="row"><button class="btn ghost" data-act="back">${back}</button><button class="btn" data-act="next" ${f.procs.length ? '' : 'disabled'} style="flex:1">${next}</button></div></div>`;
+  if (s === 2) return `${bar}<div class="stack"><h2 class="disp">${tx('写真とご予定', 'Photos and plans')}</h2>
+    <div><div class="muted small" style="margin-bottom:6px">${tx('お顔の写真（任意・最大3枚）。メイクなし・明るい場所で、正面と斜めがおすすめです。', 'Face photos (optional, up to 3). No makeup, bright light, front and angled views work best.')}</div>
+      <div class="photos">${[0, 1, 2].map(i => f.photos[i] ? `<img src="${f.photos[i]}" alt="${tx('写真', 'Photo')} ${i + 1}" data-act="zoom" data-src="${i}">` : `<label class="ph" for="pf">${tx('＋ 追加', '+ Add')}</label>`).join('')}</div>
+      <input type="file" id="pf" accept="image/*" multiple hidden>${f.photos.length ? `<button class="btn ghost sm" data-act="clrphoto" style="margin-top:8px">${tx('写真を削除', 'Remove photos')}</button>` : ''}</div>
+    <label class="f">${tx('年代', 'Age group')}<select id="age" data-bind="age">${opt(AGES, f.age)}</select></label>
+    <label class="f">${tx('ご予算の目安', 'Budget')}<select id="budget" data-bind="budget">${opt(BUDGETS, f.budget)}</select></label>
+    <label class="f">${tx('来韓予定時期', 'When do you plan to visit?')}<select id="visit" data-bind="visit">${opt(VISITS, f.visit)}</select></label>
+    <label class="f">${tx('既往歴・アレルギー・服用中の薬（あれば）', 'Medical history, allergies, current medication (if any)')}<textarea id="history" data-bind="history" placeholder="${tx('例：麻酔でかゆみが出たことがあります', 'e.g. I had itching after anesthesia once')}">${esc(f.history)}</textarea></label>
+    <div class="row"><button class="btn ghost" data-act="back">${back}</button><button class="btn" data-act="next" ${f.age && f.budget && f.visit ? '' : 'disabled'} style="flex:1">${next}</button></div></div>`;
+  return `${bar}<div class="stack"><h2 class="disp">${tx('ご連絡先', 'Your details')}</h2>
+    <label class="f">${tx('お名前（ニックネーム可）', 'Name (a nickname is fine)')}<input type="text" id="name" data-bind="name" value="${esc(f.name)}" autocomplete="nickname"></label>
+    <label class="f">${tx('LINE ID またはメールアドレス', 'LINE ID or email address')}<input type="text" id="contact" data-bind="contact" value="${esc(f.contact)}" autocomplete="email"></label>
+    <p class="muted small" style="margin:0">${tx('お返事はこのアプリのチャットでお知らせします。通知用の連絡先は、スタッフからの確認にのみ使用します。', 'Replies will appear in this app’s chat. Your contact details are used only for confirmation by our staff.')}</p>
+    <div class="row"><button class="btn ghost" data-act="back">${back}</button><button class="btn" data-act="submit" ${f.name.trim() && f.contact.trim() && !P.busy ? '' : 'disabled'} style="flex:1">${P.busy ? tx('送信中…', 'Sending…') : tx('送信して目安を見る', 'Send and see estimate')}</button></div></div>`;
 }
 async function submitCase() {
   P.busy = true; renderPatient();
   const f = P.form;
   try {
     const { id, secret: sec } = await store.createCase({ name: f.name, age: f.age, procs: f.procs, concerns: f.concerns, budget: f.budget, visit: f.visit,
-      history: f.history, contact: f.contact, photos: f.photos, source: route().source, ref: route().ref });
+      history: f.history, contact: f.contact, photos: f.photos, source: route().source, ref: route().ref, lang: P.lang });
     lsSet('galaxy_case', id); lsSet('galaxy_secret', sec); P.caseId = id; P.c = null; attachCase(); P.tab = 'result';
-  } catch (e) { toast('送信できませんでした。通信状況を確認して、もう一度お試しください。'); }
+  } catch (e) { toast(tx('送信できませんでした。通信状況を確認して、もう一度お試しください。', 'Could not send. Please check your connection and try again.')); }
   P.busy = false; renderPatient();
 }
 function attachCase() {
@@ -347,51 +366,55 @@ function attachCase() {
 
 /* --- result --- */
 function pResult() {
-  const c = P.c, e = c.est || estimate(c.procs || []);
-  const names = (c.procs || []).map(x => procOf(x)?.ja || x);
-  const next = e.surg ? 'ビデオ相談（医師スタッフ）をおすすめします。' : 'まずはチャット相談で十分です。必要に応じてビデオ相談も選べます。';
+  const c = P.c, e = c.est || estimate(c.procs || []), en = P.lang === 'en';
+  const names = (c.procs || []).map(x => { const p = procOf(x); return p ? pn(p) : x; });
+  const next = e.surg ? tx('ビデオ相談（医師スタッフ）をおすすめします。', 'A video consultation with the clinic’s medical staff is recommended.') : tx('まずはチャット相談で十分です。必要に応じてビデオ相談も選べます。', 'Chat is enough to start. You can also book a video consultation if you like.');
+  const krw = en ? `₩${(e.krwMin * 10000).toLocaleString()} – ₩${(e.krwMax * 10000).toLocaleString()}` : `₩${e.krwMin.toLocaleString()}万 〜 ₩${e.krwMax.toLocaleString()}万`;
   return `<div class="stack">
-    <div><div class="muted small">${esc(c.name)} さんのご相談</div><h2 class="disp" style="font-size:22px;margin-top:2px">費用と滞在の目安</h2></div>
-    <div class="card stack"><div class="muted small">ご希望：${names.map(esc).join('、')}</div>
-      <div class="price">約 ${yen(e.jpyMin)} 〜 ${yen(e.jpyMax)}</div>
-      <div class="muted small">（₩${e.krwMin.toLocaleString()}万 〜 ₩${e.krwMax.toLocaleString()}万／為替で変動）</div>
-      <dl class="kv" style="margin:6px 0 0"><dt>滞在日数の目安</dt><dd>${e.stay}日前後</dd><dt>おすすめ</dt><dd>${next}</dd></dl>
-      <div class="notice">この金額は写真や入力内容にもとづく概算の目安です。実際の費用は来院時の診察で確定します。診断や治療の確定ではありません。</div></div>
-    <div class="card stack"><h3 class="disp">送信した内容</h3><dl class="kv" style="margin:0">
-      <dt>年代</dt><dd>${esc(c.age)}</dd><dt>ご予算</dt><dd>${esc(c.budget)}</dd><dt>来韓時期</dt><dd>${esc(c.visit)}</dd>
-      <dt>お悩み</dt><dd>${esc(c.concerns) || '—'}</dd><dt>既往歴など</dt><dd>${esc(c.history) || '—'}</dd></dl>
-      ${(c.photos || []).length ? `<div class="photos">${c.photos.map((p, i) => `<img src="${p}" alt="写真${i + 1}" data-act="zoom" data-src="${i}">`).join('')}</div>` : ''}</div>
-    <div class="row"><button class="btn" data-act="tab" data-v="chat">チャットで相談する</button><button class="btn ghost" data-act="tab" data-v="book">ビデオ相談を予約</button></div>
-    <div class="notice legal">${CONSENT_JA}</div></div>`;
+    <div><div class="muted small">${esc(c.name)} ${tx('さんのご相談', '— your inquiry')}</div><h2 class="disp" style="font-size:22px;margin-top:2px">${tx('費用と滞在の目安', 'Estimated cost and stay')}</h2></div>
+    <div class="card stack"><div class="muted small">${tx('ご希望', 'Selected')}：${names.map(esc).join(en ? ', ' : '、')}</div>
+      <div class="price">${tx('約', 'About')} ${yen(e.jpyMin)} ${en ? '–' : '〜'} ${yen(e.jpyMax)}</div>
+      <div class="muted small">（${krw}${tx('／為替で変動', '; varies with exchange rate')}）</div>
+      <dl class="kv" style="margin:6px 0 0"><dt>${tx('滞在日数の目安', 'Length of stay')}</dt><dd>${tx(`${e.stay}日前後`, `About ${e.stay} days`)}</dd><dt>${tx('おすすめ', 'Suggested')}</dt><dd>${next}</dd></dl>
+      <div class="notice">${tx('この金額は写真や入力内容にもとづく概算の目安です。実際の費用は来院時の診察で確定します。診断や治療の確定ではありません。', 'This is a rough estimate based on what you entered. The actual cost is confirmed at your in-person examination. It is not a diagnosis or a confirmed treatment plan.')}</div></div>
+    <div class="card stack"><h3 class="disp">${tx('送信した内容', 'What you sent')}</h3><dl class="kv" style="margin:0">
+      <dt>${tx('年代', 'Age group')}</dt><dd>${esc(AGE_EN[c.age] && en ? AGE_EN[c.age] : c.age)}</dd><dt>${tx('ご予算', 'Budget')}</dt><dd>${esc(en ? (BUDGET_EN[c.budget] || c.budget) : c.budget)}</dd><dt>${tx('来韓時期', 'Visit timing')}</dt><dd>${esc(en ? (VISIT_EN[c.visit] || c.visit) : c.visit)}</dd>
+      <dt>${tx('お悩み', 'Concerns')}</dt><dd>${esc(c.concerns) || '—'}</dd><dt>${tx('既往歴など', 'History')}</dt><dd>${esc(c.history) || '—'}</dd></dl>
+      ${(c.photos || []).length ? `<div class="photos">${c.photos.map((p, i) => `<img src="${p}" alt="${tx('写真', 'Photo')} ${i + 1}" data-act="zoom" data-src="${i}">`).join('')}</div>` : ''}</div>
+    <div class="row"><button class="btn" data-act="tab" data-v="chat">${tx('チャットで相談する', 'Chat with the clinic')}</button><button class="btn ghost" data-act="tab" data-v="book">${tx('ビデオ相談を予約', 'Book a video consultation')}</button></div>
+    <div class="notice legal">${consentText()}</div></div>`;
 }
 
 /* --- chat --- */
+const QUICK_JA = ['ダウンタイムはどのくらいですか？', '費用を詳しく知りたいです。', '滞在は何日必要ですか？', '写真を追加で送りたいです。'];
+const QUICK_EN = ['How long is the downtime?', 'I’d like to know the cost in more detail.', 'How many days do I need to stay?', 'I’d like to send more photos.'];
+const QUICK_SHORT_JA = ['ダウンタイムはどのくらい？', '費用を詳しく知りたい', '滞在は何日必要ですか？', '写真を追加で送りたい'];
+const QUICK_SHORT_EN = ['How long is downtime?', 'Cost details', 'How many days to stay?', 'Send more photos'];
 function pChat() {
-  const qs = ['ダウンタイムはどのくらい？', '費用を詳しく知りたい', '滞在は何日必要ですか？', '写真を追加で送りたい'];
+  const qs = tx(QUICK_SHORT_JA, QUICK_SHORT_EN);
   return `<div class="chat">
-    <div class="chat-head"><span class="avatar">${star(22)}</span><div><b>별성형외과 相談チーム</b><div class="small muted"><i class="live"></i>通常24時間以内にお返事します</div></div></div>
+    <div class="chat-head"><span class="avatar">${star(22)}</span><div><b>${tx('별성형외과 相談チーム', '별성형외과 Consultation Team')}</b><div class="small muted"><i class="live"></i>${tx('通常24時間以内にお返事します', 'We usually reply within 24 hours')}</div></div></div>
     <div class="msgs" id="msgs"></div>
     <div class="cbar"><div class="quick">${qs.map((q, i) => `<button class="chip" data-act="quick" data-v="${i}">${q}</button>`).join('')}</div>
-      <div class="cin"><label class="iconbtn" for="cphoto" title="写真を添付" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-8 9"/></svg></label><input type="file" id="cphoto" accept="image/*" hidden>
-      <textarea id="pmsg" rows="1" placeholder="メッセージを入力" aria-label="メッセージ"></textarea>
-      <button class="iconbtn send" data-act="psend" aria-label="送信"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>
-      <div class="legal-line">診断・処方は行いません。最終判断は対面診察で行います。</div></div></div>`;
+      <div class="cin"><label class="iconbtn" for="cphoto" title="${tx('写真を添付', 'Attach a photo')}" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-8 9"/></svg></label><input type="file" id="cphoto" accept="image/*" hidden>
+      <textarea id="pmsg" rows="1" placeholder="${tx('メッセージを入力', 'Type a message')}" aria-label="${tx('メッセージ', 'Message')}"></textarea>
+      <button class="iconbtn send" data-act="psend" aria-label="${tx('送信', 'Send')}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>
+      <div class="legal-line">${tx('診断・処方は行いません。最終判断は対面診察で行います。', 'We do not diagnose or prescribe here. Final decisions are made at an in-person examination.')}</div></div></div>`;
 }
-const QUICK = ['ダウンタイムはどのくらいですか？', '費用を詳しく知りたいです。', '滞在は何日必要ですか？', '写真を追加で送りたいです。'];
 function paintMsgs() {
   const el = $('#msgs'); if (!el) return;
   const ms = P.msgs; let html = '', lastDay = '';
   const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
   ms.forEach((m, i) => {
-    const d = new Date(m.at), day = `${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+    const d = new Date(m.at), day = dayLabel(d);
     if (day !== lastDay) { html += `<div class="day">${day}</div>`; lastDay = day; }
     if (m.kind === 'sys') { html += `<div class="sysm">${esc(m.ja)}</div>`; return; }
     const same = o => o && o.kind !== 'sys' && o.from === m.from && new Date(o.at).toDateString() === d.toDateString();
     const gs = !same(ms[i - 1]), ge = !same(ms[i + 1]), me = m.from === 'patient';
-    const tri = m.aftercare ? `<span class="badge ${TRI[m.aftercare].cls}">${TRI[m.aftercare].ja}</span>` : '';
+    const tri = m.aftercare ? `<span class="badge ${TRI[m.aftercare].cls}">${tx(TRI[m.aftercare].ja, TRI[m.aftercare].en)}</span>` : '';
     const text = esc(m.ja || m.text);
     html += `<div class="cm ${me ? 'me' : 'them'} ${gs ? 'gs' : ''} ${ge ? 'ge' : ''}">${me ? '' : `<span class="av ${ge ? 'on' : ''}">${ge ? star(15) : ''}</span>`}
-      <div class="col">${!me && gs ? '<div class="who">별성형외과 スタッフ</div>' : ''}<div class="bub">${m.photo ? `<img src="${m.photo}" alt="添付写真" data-act="zoomsrc">` : ''}${text ? (m.photo ? `<span>${text}</span>` : text) : ''}</div>
+      <div class="col">${!me && gs ? `<div class="who">${tx('별성형외과 スタッフ', '별성형외과 Staff')}</div>` : ''}<div class="bub">${m.photo ? `<img src="${m.photo}" alt="${tx('添付写真', 'Attached photo')}" data-act="zoomsrc">` : ''}${text ? (m.photo ? `<span>${text}</span>` : text) : ''}</div>
       ${ge ? `<div class="meta">${tri}${hm(d)}</div>` : ''}</div></div>`;
   });
   el.innerHTML = html;
@@ -401,50 +424,49 @@ function paintMsgs() {
 function markReadOnce() { if (P.reading) return; P.reading = true; store.markRead().catch(() => {}).finally(() => P.reading = false); }
 async function sendPatient(text, photo) {
   if (!text?.trim() && !photo) return;
-  try { await store.send((text || '').trim(), photo || null); } catch { toast('送信できませんでした'); }
+  try { await store.send((text || '').trim(), photo || null); } catch { toast(tx('送信できませんでした', 'Could not send')); }
 }
 
 /* --- booking --- */
-function days() { const a = []; const d = new Date(); for (let i = 1; i <= 8; i++) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i); a.push(x); } return a; }
+function days() { const a = []; const d = new Date(); for (let i = 1; i <= 8; i++) { a.push(new Date(d.getFullYear(), d.getMonth(), d.getDate() + i)); } return a; }
 const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const WD = ['日', '月', '火', '水', '木', '金', '土'];
 function pBook() {
   const m = P.c.meeting;
-  if (m?.status === 'confirmed') return `<div class="stack"><h2 class="disp">ビデオ相談が確定しました</h2>
-    <div class="card stack"><div class="price">${esc(m.at.replace('T', ' '))}</div><div class="muted small">日本時間（韓国と時差なし）</div>
-    ${/^https:\/\//.test(m.link || '') ? `<a class="btn" style="text-align:center;text-decoration:none" href="${esc(m.link)}" target="_blank" rel="noopener">ビデオ相談に参加する</a>` : '<div class="notice">参加用リンクは、開始前にチャットでお送りします。</div>'}
-    <div class="small muted">通訳を交えてご案内します。静かな場所で、顔の写真を見せられる準備をお願いします。</div></div>
-    <button class="btn ghost" data-act="rebook">日時を変更したい</button></div>`;
+  if (m?.status === 'confirmed') return `<div class="stack"><h2 class="disp">${tx('ビデオ相談が確定しました', 'Your video consultation is confirmed')}</h2>
+    <div class="card stack"><div class="price">${esc(m.at.replace('T', ' '))}</div><div class="muted small">${tx('日本時間（韓国と時差なし）', 'Japan time (same as Korea)')}</div>
+    ${/^https:\/\//.test(m.link || '') ? `<a class="btn" style="text-align:center;text-decoration:none" href="${esc(m.link)}" target="_blank" rel="noopener">${tx('ビデオ相談に参加する', 'Join the video consultation')}</a>` : `<div class="notice">${tx('参加用リンクは、開始前にチャットでお送りします。', 'We will send the joining link in the chat before the start time.')}</div>`}
+    <div class="small muted">${tx('通訳を交えてご案内します。静かな場所で、顔の写真を見せられる準備をお願いします。', 'An interpreter will assist. Please join from a quiet place and have your face photos ready to show.')}</div></div>
+    <button class="btn ghost" data-act="rebook">${tx('日時を変更したい', 'Change the date or time')}</button></div>`;
   const ds = days(), times = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
-  return `<div class="stack"><h2 class="disp">ビデオ相談の予約</h2>
-    ${m?.status === 'requested' ? `<div class="notice">希望日時 ${esc(m.at.replace('T', ' '))} を送信済みです。スタッフが確認して確定します。</div>` : ''}
-    <p class="muted small" style="margin:0">医師スタッフと約20分。日本時間と韓国時間は同じです。</p>
-    <div class="chips">${ds.map(d => `<button class="chip" data-act="day" data-v="${iso(d)}" aria-pressed="${P.slotDay === iso(d)}">${d.getMonth() + 1}/${d.getDate()}（${WD[d.getDay()]}）</button>`).join('')}</div>
+  return `<div class="stack"><h2 class="disp">${tx('ビデオ相談の予約', 'Book a video consultation')}</h2>
+    ${m?.status === 'requested' ? `<div class="notice">${tx(`希望日時 ${esc(m.at.replace('T', ' '))} を送信済みです。スタッフが確認して確定します。`, `Your requested time ${esc(m.at.replace('T', ' '))} has been sent. Our staff will confirm it.`)}</div>` : ''}
+    <p class="muted small" style="margin:0">${tx('医師スタッフと約20分。日本時間と韓国時間は同じです。', 'About 20 minutes with the clinic’s medical staff. Japan and Korea share the same time.')}</p>
+    <div class="chips">${ds.map(d => `<button class="chip" data-act="day" data-v="${iso(d)}" aria-pressed="${P.slotDay === iso(d)}">${tx(`${d.getMonth() + 1}/${d.getDate()}（${WD[d.getDay()]}）`, `${MON[d.getMonth()]} ${d.getDate()} ${WDE[d.getDay()]}`)}</button>`).join('')}</div>
     <div class="slot-grid">${times.map(t => `<button class="chip" data-act="time" data-v="${t}" aria-pressed="${P.slotTime === t}">${t}</button>`).join('')}</div>
-    <button class="btn block" data-act="reqslot" ${P.slotDay && P.slotTime ? '' : 'disabled'}>この日時で希望を送る</button></div>`;
+    <button class="btn block" data-act="reqslot" ${P.slotDay && P.slotTime ? '' : 'disabled'}>${tx('この日時で希望を送る', 'Request this time')}</button></div>`;
 }
 async function requestSlot() {
-  try { await store.requestSlot(`${P.slotDay}T${P.slotTime}`); toast('希望日時を送信しました'); } catch { toast('送信できませんでした'); }
+  try { await store.requestSlot(`${P.slotDay}T${P.slotTime}`); toast(tx('希望日時を送信しました', 'Request sent')); } catch { toast(tx('送信できませんでした', 'Could not send')); }
 }
 
 /* --- aftercare --- */
 function pAfter() {
   const t = P.c.triage, h = TRI[t];
-  const last = t ? `<div class="card stack"><span class="badge ${h.cls}" style="align-self:flex-start">${h.ja}</span><div>${h.msg}</div><div class="muted small">送信：${fmt(P.c.triageAt)}（手術後${P.c.dayN || '—'}日目）</div></div>` : '';
-  return `<div class="stack"><h2 class="disp">術後ケア</h2>
-    <p class="muted small" style="margin:0">帰国後も、写真と症状を送るとスタッフが確認します。以下は目安であり、診断ではありません。</p>${last}
-    <label class="f">手術後の日数<input type="text" id="dayN" inputmode="numeric" placeholder="例：3" value="${esc(P.dayN)}" data-bind="dayN"></label>
-    <div><div style="font-weight:500;font-size:14px;margin-bottom:8px">当てはまる症状</div>
-      <div class="chips">${SYMPTOMS.map(s => `<button class="chip" data-act="sym" data-v="${s.id}" aria-pressed="${P.sym.includes(s.id)}">${s.ja}</button>`).join('')}</div></div>
-    <div><div style="font-weight:500;font-size:14px;margin-bottom:8px">患部の写真</div>
-      <div class="photos">${P.aPhoto ? `<img src="${P.aPhoto}" alt="術後写真" data-act="zoomsrc">` : `<label class="ph" for="aph">＋ 追加</label>`}</div><input type="file" id="aph" accept="image/*" hidden></div>
-    <button class="btn block" data-act="asend" ${P.dayN && (P.aPhoto || P.sym.length) ? '' : 'disabled'}>経過を送る</button></div>`;
+  const last = t ? `<div class="card stack"><span class="badge ${h.cls}" style="align-self:flex-start">${tx(h.ja, h.en)}</span><div>${tx(h.msg, h.msgEn)}</div><div class="muted small">${tx('送信', 'Sent')}：${fmt(P.c.triageAt)}（${tx(`手術後${P.c.dayN || '—'}日目`, `day ${P.c.dayN || '—'} after surgery`)}）</div></div>` : '';
+  return `<div class="stack"><h2 class="disp">${tx('術後ケア', 'Aftercare')}</h2>
+    <p class="muted small" style="margin:0">${tx('帰国後も、写真と症状を送るとスタッフが確認します。以下は目安であり、診断ではありません。', 'Even after you return home, send photos and symptoms and our staff will review them. The guidance below is only a rough indication, not a diagnosis.')}</p>${last}
+    <label class="f">${tx('手術後の日数', 'Days since surgery')}<input type="text" id="dayN" inputmode="numeric" placeholder="${tx('例：3', 'e.g. 3')}" value="${esc(P.dayN)}" data-bind="dayN"></label>
+    <div><div style="font-weight:500;font-size:14px;margin-bottom:8px">${tx('当てはまる症状', 'Symptoms you have')}</div>
+      <div class="chips">${SYMPTOMS.map(s => `<button class="chip" data-act="sym" data-v="${s.id}" aria-pressed="${P.sym.includes(s.id)}">${tx(s.ja, s.en)}</button>`).join('')}</div></div>
+    <div><div style="font-weight:500;font-size:14px;margin-bottom:8px">${tx('患部の写真', 'Photo of the area')}</div>
+      <div class="photos">${P.aPhoto ? `<img src="${P.aPhoto}" alt="${tx('術後写真', 'Aftercare photo')}" data-act="zoomsrc">` : `<label class="ph" for="aph">${tx('＋ 追加', '+ Add')}</label>`}</div><input type="file" id="aph" accept="image/*" hidden></div>
+    <button class="btn block" data-act="asend" ${P.dayN && (P.aPhoto || P.sym.length) ? '' : 'disabled'}>${tx('経過を送る', 'Send update')}</button></div>`;
 }
 async function sendAfter() {
   try {
-    await store.sendAfter({ dayN: P.dayN, symptoms: P.sym, symptomNames: P.sym.map(i => SYMPTOMS.find(s => s.id === i)?.ja).join('、'), photo: P.aPhoto });
-    P.sym = []; P.aPhoto = null; P.dayN = ''; toast('経過を送信しました');
-  } catch { toast('送信できませんでした'); }
+    await store.sendAfter({ dayN: P.dayN, symptoms: P.sym, symptomNames: P.sym.map(i => { const s = SYMPTOMS.find(x => x.id === i); return s ? tx(s.ja, s.en) : i; }).join(P.lang === 'en' ? ', ' : '、'), photo: P.aPhoto });
+    P.sym = []; P.aPhoto = null; P.dayN = ''; toast(tx('経過を送信しました', 'Update sent'));
+  } catch { toast(tx('送信できませんでした', 'Could not send')); }
   renderPatient();
 }
 
@@ -476,7 +498,7 @@ function sInbox() {
     ${list.length ? list.map(c => `<button class="item" data-act="sel" data-v="${c.id}" aria-current="${ST.sel === c.id}">
       <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><b>${esc(c.name)} <span class="muted small">${esc(c.age)}</span></b><span class="tiny muted">${fmt(c.lastAt)}</span></div>
       <div class="small muted">${(c.procs || []).map(x => esc(procOf(x)?.ko || x)).join(', ')}</div>
-      <div class="row" style="gap:6px"><span class="badge ${STATUS[c.status]?.[1] || ''}">${STATUS[c.status]?.[0] || c.status}</span><span class="badge">${esc(SOURCES[c.source] || c.source)}</span>
+      <div class="row" style="gap:6px"><span class="badge ${STATUS[c.status]?.[1] || ''}">${STATUS[c.status]?.[0] || c.status}</span><span class="badge">${esc(SOURCES[c.source] || c.source)}</span><span class="badge">${c.lang === 'en' ? 'EN' : 'JP'}</span>
       ${c.triage ? `<span class="badge ${TRIK[c.triage][1]}">${TRIK[c.triage][0]}</span>` : ''}${c.unreadStaff ? '<span class="badge new">NEW</span>' : ''}</div></button>`).join('')
       : `<div class="card muted">상담이 아직 없습니다. 「현황·SNS」 탭의 링크를 인스타그램/틱톡 프로필에 넣으면 문의가 이곳에 들어옵니다.</div>`}
   </div><div class="detail">${ST.sel && ST.c ? sDetail() : '<div class="card muted">왼쪽에서 상담을 선택하세요.</div>'}</div></div>`;
@@ -486,13 +508,13 @@ function sMeetStat(m) { return m ? `<div class="row"><span class="badge ${m.stat
 function sDetail() {
   const c = ST.c, e = c.est || {}, m = c.meeting;
   return `<div class="stack">
-    <div class="row"><button class="btn ghost sm" data-act="unsel" id="backbtn">← 목록</button><h2 style="font-size:19px;flex:1">${esc(c.name)} <span class="muted small">${esc(c.age)} · ${esc(SOURCES[c.source] || c.source)}</span></h2>
+    <div class="row"><button class="btn ghost sm" data-act="unsel" id="backbtn">← 목록</button><h2 style="font-size:19px;flex:1">${esc(c.name)} <span class="muted small">${esc(c.age)} · ${esc(SOURCES[c.source] || c.source)} · ${c.lang === 'en' ? '영어(EN)' : '일본어(JP)'}</span></h2>
       <select id="stsel" data-act="status" style="width:auto">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${c.status === k ? 'selected' : ''}>${v[0]}</option>`).join('')}</select></div>
     <div id="triban">${sTriBan(c)}</div>
     <div class="card"><dl class="kv" style="margin:0"><dt>희망 시술</dt><dd>${(c.procs || []).map(x => esc(procOf(x)?.ko || x)).join(', ')}</dd>
       <dt>고민</dt><dd>${esc(c.concerns) || '—'}</dd><dt>예산 / 시기</dt><dd>${esc(c.budget)} / ${esc(c.visit)}</dd>
       <dt>병력·알레르기</dt><dd>${esc(c.history) || '—'}</dd><dt>연락처</dt><dd>${esc(c.contact)}</dd>
-      <dt>안내한 견적</dt><dd>₩${(e.krwMin || 0).toLocaleString()}만 ~ ₩${(e.krwMax || 0).toLocaleString()}만 (환자 화면: ${yen(e.jpyMin || 0)}~${yen(e.jpyMax || 0)})</dd></dl>
+      <dt>안내한 견적</dt><dd>₩${(e.krwMin || 0).toLocaleString()}만 ~ ₩${(e.krwMax || 0).toLocaleString()}만 (환자 화면: ${yenJa(e.jpyMin || 0)}~${yenJa(e.jpyMax || 0)})</dd></dl>
       ${(c.photos || []).length ? `<div class="photos" style="margin-top:12px">${c.photos.map((p, i) => `<img src="${p}" alt="사진${i + 1}" data-act="zoom" data-src="${i}">`).join('')}</div>` : ''}</div>
     <div class="card stack"><h3 class="disp">화상상담</h3>
       <div id="meetstat">${sMeetStat(m)}</div>
@@ -501,9 +523,9 @@ function sDetail() {
       <button class="btn sm" data-act="confirmMeet">확정하고 환자에게 알림</button></div></div>
     <div class="card stack"><h3 class="disp">대화</h3><div class="msgs" id="smsgs"></div></div>
     <div class="composer card stack"><div class="chips">${TEMPLATES.map((t, i) => `<button class="chip" data-act="tpl" data-v="${i}" style="min-height:32px;padding:4px 10px;font-size:12.5px">${t.ko}</button>`).join('')}</div>
-      <label class="f small">한국어로 작성 (일본어로 자동 번역)<textarea id="koDraft" data-bind="koDraft" style="min-height:70px">${esc(ST.koDraft)}</textarea></label>
-      <div class="row"><button class="btn ghost sm" data-act="toJa">일본어로 번역</button><span class="tiny muted" id="trmsg"></span></div>
-      <label class="f small">환자에게 보낼 일본어 (직접 수정 가능)<textarea id="jaDraft" data-bind="jaDraft" lang="ja" style="min-height:70px">${esc(ST.jaDraft)}</textarea></label>
+      <label class="f small">한국어로 작성 (${c.lang === 'en' ? '영어' : '일본어'}로 자동 번역)<textarea id="koDraft" data-bind="koDraft" style="min-height:70px">${esc(ST.koDraft)}</textarea></label>
+      <div class="row"><button class="btn ghost sm" data-act="toJa">${c.lang === 'en' ? '영어로 번역' : '일본어로 번역'}</button><span class="tiny muted" id="trmsg"></span></div>
+      <label class="f small">환자에게 보낼 ${c.lang === 'en' ? '영어' : '일본어'} (직접 수정 가능)<textarea id="jaDraft" data-bind="jaDraft" lang="${c.lang === 'en' ? 'en' : 'ja'}" style="min-height:70px">${esc(ST.jaDraft)}</textarea></label>
       <div class="row"><button class="btn" data-act="ssend" style="margin-left:auto">환자에게 전송</button></div></div></div>`;
 }
 function paintStaffMsgs() {
@@ -567,8 +589,8 @@ document.addEventListener('input', e => {
 document.addEventListener('change', async e => {
   const t = e.target;
   if (t.id === 'pf') { const fs = [...t.files].slice(0, 3 - P.form.photos.length); for (const f of fs) { try { P.form.photos.push(await shrink(f)); } catch {} } renderPatient(); }
-  if (t.id === 'cphoto' && t.files[0]) { try { await sendPatient($('#pmsg').value, await shrink(t.files[0])); $('#pmsg').value = ''; } catch { toast('写真を送信できませんでした'); } }
-  if (t.id === 'aph' && t.files[0]) { try { P.aPhoto = await shrink(t.files[0]); renderPatient(); } catch { toast('写真を読み込めませんでした'); } }
+  if (t.id === 'cphoto' && t.files[0]) { try { await sendPatient($('#pmsg').value, await shrink(t.files[0])); $('#pmsg').value = ''; } catch { toast(tx('写真を送信できませんでした', 'Could not send the photo')); } }
+  if (t.id === 'aph' && t.files[0]) { try { P.aPhoto = await shrink(t.files[0]); renderPatient(); } catch { toast(tx('写真を読み込めませんでした', 'Could not load the photo')); } }
   if (t.id === 'stsel') { await store.setStatus(ST.sel, t.value); }
 });
 document.addEventListener('submit', async e => {
@@ -590,7 +612,8 @@ document.addEventListener('click', async e => {
   else if (a === 'submit') submitCase();
   else if (a === 'tab') { P.tab = v; renderPatient(); window.scrollTo(0, 0); if (v === 'chat' && P.c?.unreadPatient) markReadOnce(); }
   else if (a === 'psend') { const t = $('#pmsg'); const x = t.value; t.value = ''; t.style.height = 'auto'; await sendPatient(x); }
-  else if (a === 'quick') { const t = $('#pmsg'); t.value = QUICK[+v]; t.dispatchEvent(new Event('input', { bubbles: true })); t.focus(); }
+  else if (a === 'lang') { P.lang = v; lsSet('galaxy_lang', v); if (P.caseId) store.setLang(v).catch(() => {}); renderPatient(); }
+  else if (a === 'quick') { const t = $('#pmsg'); t.value = (P.lang === 'en' ? QUICK_EN : QUICK_JA)[+v]; t.dispatchEvent(new Event('input', { bubbles: true })); t.focus(); }
   else if (a === 'day') { P.slotDay = v; renderPatient(); } else if (a === 'time') { P.slotTime = v; renderPatient(); }
   else if (a === 'reqslot') requestSlot();
   else if (a === 'rebook') { await store.requestSlot(null); }
@@ -604,14 +627,14 @@ async function staffAct(a, v, b) {
   else if (a === 'sel') selectCase(v);
   else if (a === 'unsel') selectCase(null);
   else if (a === 'copy') { try { await navigator.clipboard.writeText(v); toast('링크를 복사했습니다'); } catch { toast('복사할 수 없습니다. 링크를 길게 눌러 선택하세요'); } }
-  else if (a === 'tpl') { const t = TEMPLATES[+v]; ST.jaDraft = t.ja; $('#jaDraft').value = t.ja; ST.koDraft = ''; $('#koDraft').value = ''; }
+  else if (a === 'tpl') { const t = TEMPLATES[+v], tt = ST.c?.lang === 'en' ? t.en : t.ja; ST.jaDraft = tt; $('#jaDraft').value = tt; ST.koDraft = ''; $('#koDraft').value = ''; }
   else if (a === 'toJa') {
     if (!ST.koDraft.trim()) return; $('#trmsg').textContent = '번역 중…';
-    try { ST.jaDraft = await translate(ST.koDraft, 'ja'); $('#jaDraft').value = ST.jaDraft; $('#trmsg').textContent = '번역됨 · 전송 전 확인하세요'; } catch { $('#trmsg').textContent = '자동 번역을 사용할 수 없습니다. 일본어를 직접 입력하세요.'; }
+    try { ST.jaDraft = await translate(ST.koDraft, ST.c?.lang === 'en' ? 'en' : 'ja'); $('#jaDraft').value = ST.jaDraft; $('#trmsg').textContent = '번역됨 · 전송 전 확인하세요'; } catch { $('#trmsg').textContent = '자동 번역을 사용할 수 없습니다. 환자 언어로 직접 입력하세요.'; }
   }
   else if (a === 'trKo') { b.disabled = true; const m = ST.msgs.find(x => x.id === v); try { const ko = await translate(m.ja, 'ko'); ST.ko[v] = ko; paintStaffMsgs(); } catch { toast('자동 번역을 사용할 수 없습니다'); b.disabled = false; } }
   else if (a === 'ssend') {
-    const ja = ST.jaDraft.trim(); if (!ja) { toast('환자에게 보낼 일본어 문장이 필요합니다'); return; }
+    const ja = ST.jaDraft.trim(); if (!ja) { toast('환자에게 보낼 문장(번역문)이 필요합니다'); return; }
     const now = Date.now();
     await store.staffSend(ST.sel, ja, ST.koDraft.trim() || ja);
     ST.jaDraft = ST.koDraft = ''; $('#jaDraft').value = ''; $('#koDraft').value = ''; $('#trmsg').textContent = ''; toast('전송했습니다');
