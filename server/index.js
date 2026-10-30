@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cases, messages, getCfg, setCfg, db } from './db.js';
-import { estimate, triage, SYMPTOM_LEVEL } from './logic.js';
+import { estimate, triage, SYMPTOM_LEVEL, PROC_EN } from './logic.js';
 import { verifySignature, handleWebhook, nudge, igConfigured } from './instagram.js';
 
 export const app = express();
@@ -57,6 +57,7 @@ app.put('/api/config', staffOnly, (req, res) => {
 
 /* ---------- 환자 API (case id + secret) ---------- */
 const sys = (caseId, at, ja) => messages.add(caseId, { from: 'sys', kind: 'sys', at, ja });
+const L = (c, ja, en) => (c.lang === 'en' ? en : ja); // 환자 언어(ja|en)에 맞는 문구
 function patientAuth(req, res, next) {
   const row = cases.raw(req.params.id), s = req.get('x-case-secret');
   if (!row || !s || !safeEq(row.secret_hash, hash(s))) return res.status(404).json({ error: 'not_found' });
@@ -70,17 +71,18 @@ app.post('/api/cases', limit('newcase', 10, 3600e3), (req, res) => {
   if (!procs.length || !clean(b.name, 60) || !clean(b.contact, 120) || photos.some(p => !validPhoto(p))) return res.status(400).json({ error: 'invalid' });
   const id = crypto.randomBytes(8).toString('hex'), secret = crypto.randomBytes(24).toString('hex');
   const c = { id, createdAt: now, lastAt: now, status: 'new', unreadStaff: true, unreadPatient: false,
-    source: SOURCES.includes(b.source) ? b.source : 'direct', ref: clean(b.ref, 40) || null, stage: 'pre', triage: '', meeting: null,
+    lang: b.lang === 'en' ? 'en' : 'ja', source: SOURCES.includes(b.source) ? b.source : 'direct', ref: clean(b.ref, 40) || null, stage: 'pre', triage: '', meeting: null,
     name: clean(b.name, 60), age: clean(b.age, 20), procs, concerns: clean(b.concerns, 1500), budget: clean(b.budget, 30), visit: clean(b.visit, 30),
     history: clean(b.history, 1500), contact: clean(b.contact, 120), photos, est: estimate(procs, cfg), consentAt: now };
   cases.insert(c, hash(secret));
-  const names = procs.map(id => cfg.procs.find(p => p.id === id).ja).join('、');
-  messages.add(id, { from: 'patient', kind: 'text', at: now, ja: `【新規相談】${names}\n${c.concerns}` });
-  sys(id, now + 1, 'ご相談を受け付けました。スタッフが確認し、24時間以内にこのチャットでお返事します。');
+  const en = c.lang === 'en', names = procs.map(pid => en ? (PROC_EN[pid] || pid) : cfg.procs.find(p => p.id === pid).ja).join(en ? ', ' : '、');
+  messages.add(id, { from: 'patient', kind: 'text', at: now, ja: `${en ? '[New inquiry] ' : '【新規相談】'}${names}\n${c.concerns}` });
+  sys(id, now + 1, L(c, 'ご相談を受け付けました。スタッフが確認し、24時間以内にこのチャットでお返事します。', 'We have received your inquiry. Our staff will review it and reply in this chat within 24 hours.'));
   res.status(201).json({ id, secret });
 });
 app.get('/api/cases/:id', patientAuth, (req, res) => res.json(req.c));
 app.get('/api/cases/:id/messages', patientAuth, (req, res) => res.json(messages.list(req.c.id)));
+app.post('/api/cases/:id/lang', patientAuth, (req, res) => { req.c.lang = req.body?.lang === 'en' ? 'en' : 'ja'; cases.save(req.c); res.json({ ok: true }); });
 app.post('/api/cases/:id/read', patientAuth, (req, res) => { const c = req.c; if (c.unreadPatient) { c.unreadPatient = false; cases.save(c); } res.json({ ok: true }); });
 app.post('/api/cases/:id/messages', patientAuth, limit('pmsg', 60, 3600e3), (req, res) => {
   const c = req.c, now = Date.now(), text = clean(req.body?.text, 2000), photo = req.body?.photo || null;
@@ -96,7 +98,7 @@ app.post('/api/cases/:id/meeting', patientAuth, (req, res) => {
   if (at === null) { c.meeting = null; cases.save(c); return res.json({ ok: true }); }
   if (!SLOT.test(at || '')) return res.status(400).json({ error: 'invalid' });
   c.meeting = { status: 'requested', at }; Object.assign(c, { lastAt: now, unreadStaff: true }); cases.save(c);
-  sys(c.id, now, `ビデオ相談の希望：${at.replace('T', ' ')}（確定までお待ちください）`);
+  sys(c.id, now, L(c, `ビデオ相談の希望：${at.replace('T', ' ')}（確定までお待ちください）`, `Video consultation requested for ${at.replace('T', ' ')} (please wait for confirmation).`));
   res.json({ ok: true });
 });
 app.post('/api/cases/:id/aftercare', patientAuth, limit('after', 20, 3600e3), (req, res) => {
@@ -105,7 +107,7 @@ app.post('/api/cases/:id/aftercare', patientAuth, limit('after', 20, 3600e3), (r
   const dayN = clean(b.dayN, 3).replace(/\D/g, ''), photo = b.photo || null;
   if (!dayN || (!photo && !syms.length) || (photo && !validPhoto(photo))) return res.status(400).json({ error: 'invalid' });
   const t = triage(syms);
-  messages.add(c.id, { from: 'patient', kind: 'photo', at: now, photo, ja: `【術後${dayN}日目】症状：${b.symptomNames || (syms.length ? syms.join('、') : '特になし')}`.slice(0, 400), aftercare: t });
+  messages.add(c.id, { from: 'patient', kind: 'photo', at: now, photo, ja: (c.lang === 'en' ? `[Day ${dayN} after surgery] Symptoms: ${b.symptomNames || (syms.length ? syms.join(', ') : 'none')}` : `【術後${dayN}日目】症状：${b.symptomNames || (syms.length ? syms.join('、') : '特になし')}`).slice(0, 400), aftercare: t });
   Object.assign(c, { stage: 'after', triage: t, triageAt: now, dayN, lastAt: now, unreadStaff: true }); cases.save(c);
   res.json({ triage: t });
 });
@@ -131,15 +133,17 @@ app.post('/api/staff/cases/:id/meeting', staffOnly, staffCase, (req, res) => {
   const c = req.c, now = Date.now(), at = clean(req.body?.at, 16), link = clean(req.body?.link, 500);
   if (!SLOT.test(at) || (link && !/^https:\/\//.test(link))) return res.status(400).json({ error: 'invalid' });
   c.meeting = { status: 'confirmed', at, link }; Object.assign(c, { status: 'booked', lastAt: now, unreadPatient: true }); cases.save(c);
-  sys(c.id, now, `ビデオ相談が確定しました：${at.replace('T', ' ')}（日本時間）。「ビデオ予約」タブから参加できます。`);
+  sys(c.id, now, L(c, `ビデオ相談が確定しました：${at.replace('T', ' ')}（日本時間）。「ビデオ予約」タブから参加できます。`, `Your video consultation is confirmed: ${at.replace('T', ' ')} (Japan/Korea time). Join from the "Video" tab.`));
   nudge(c.ref); res.json({ ok: true });
 });
 app.post('/api/staff/translate', staffOnly, limit('tr', 120, 3600e3), async (req, res) => {
-  const key = process.env.ANTHROPIC_API_KEY, text = clean(req.body?.text, 2500), to = req.body?.to === 'ko' ? 'ko' : 'ja';
+  const key = process.env.ANTHROPIC_API_KEY, text = clean(req.body?.text, 2500), to = ['ko', 'en'].includes(req.body?.to) ? req.body.to : 'ja';
   if (!key) return res.status(501).json({ error: 'no_key' });
-  const prompt = to === 'ja'
+  const prompt = to === 'en'
+    ? `Translate the following Korean into polite, natural English for a message from a cosmetic clinic to an international patient. Do not add any diagnosis or treatment claims; translate only the meaning. Output only the translation.\n\n${text}`
+    : to === 'ja'
     ? `次の韓国語を、美容クリニックから日本人患者へ送る丁寧で自然な日本語(です・ます調)に翻訳してください。診断や治療の断定は加えず、原文の意味だけを訳し、翻訳文のみを出力してください。\n\n${text}`
-    : `다음 일본어(미용 클리닉 환자의 메시지)를 자연스러운 한국어로 번역하세요. 번역문만 출력하세요.\n\n${text}`;
+    : `다음 메시지(미용 클리닉 환자가 보낸 일본어 또는 영어)를 자연스러운 한국어로 번역하세요. 번역문만 출력하세요.\n\n${text}`;
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },

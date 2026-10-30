@@ -50,4 +50,11 @@ await ok('인스타 웹훅: 서명 검증·검증 토큰·자동응답 24시간 
   const ev = { entry: [{ messaging: [{ sender: { id: 'u2' }, message: { text: 'hi' } }, { sender: { id: 'u2' }, message: { text: 'again' } }, { sender: { id: 'u3' }, message: { is_echo: true, text: 'me' } }] }] };
   await handleWebhook(ev, send); assert.equal(sent.length, 1); assert.match(sent[0][1], /src=ig&ref=u2/);
 });
+await ok('영어 환자: 영어 안내문·영어 시술명, 언어 변경', async () => {
+  const r = await j('/api/cases', { method: 'POST', body: { name: 'Anna', contact: 'a@x.com', age: '20代', procs: ['hana'], concerns: 'natural look', budget: 'b', visit: 'v', lang: 'en' } });
+  const S = { 'x-case-secret': r.b.secret }, m = await j(`/api/cases/${r.b.id}/messages`, { headers: S });
+  assert.match(m.b[0].ja, /^\[New inquiry\] Nose surgery/); assert.match(m.b[1].ja, /We have received/);
+  assert.equal((await j(`/api/cases/${r.b.id}/lang`, { method: 'POST', headers: S, body: { lang: 'ja' } })).s, 200);
+  assert.equal((await j('/api/cases/' + r.b.id, { headers: S })).b.lang, 'ja');
+});
 srv.close();

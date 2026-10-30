@@ -25,3 +25,7 @@ export function triage(symIds) {
   const lv = Math.max(-1, ...symIds.map(id => SYMPTOM_LEVEL[id] ?? -1));
   return lv >= 2 ? 'alert' : lv === 1 ? 'caution' : 'normal';
 }
+
+// 영어 시술명 (DB에 저장된 설정에 en이 없어도 동작하도록 id로 매핑)
+export const PROC_EN = { maibotsu: 'Double eyelid (suture)', sekkai: 'Double eyelid (incisional)', megashira: 'Epicanthoplasty / lateral canthoplasty', hana: 'Nose surgery',
+  rinkaku: 'Facial contouring', shibo: 'Facial liposuction', lift: 'Lifting', botox: 'Botox / fillers', laser: 'Skin / laser' };
