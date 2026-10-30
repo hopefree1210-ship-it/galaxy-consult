@@ -1,0 +1,16 @@
+{
+  "name": "galaxy-consult",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "별성형외과 GALAXY - 일본 환자용 비대면 사전상담 시스템",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node server/test.js"
+  },
+  "engines": { "node": ">=22.13" },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
