@@ -46,6 +46,7 @@ app.post('/api/staff/logout', (_req, res) => { res.clearCookie('gx_staff'); res.
 app.get('/api/staff/me', (req, res) => res.json({ authed: isStaff(req), instagram: igConfigured() }));
 
 /* ---------- 설정(가격표) ---------- */
+app.get('/api/stats', (_req, res) => res.json({ consults: db.prepare('select count(*) n from cases').get().n }));
 app.get('/api/config', (_req, res) => res.json(getCfg()));
 app.put('/api/config', staffOnly, (req, res) => {
   const { rate, procs } = req.body || {};

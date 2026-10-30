@@ -133,6 +133,10 @@ textarea{resize:vertical;min-height:88px}
 .lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden;flex:none}
 .lang button{background:none;border:0;color:var(--night-ink);opacity:.75;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;min-height:30px}
 .lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);opacity:1}
+.pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.02em;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);padding:4px 12px;border-radius:999px;margin-bottom:14px}
+.cta{min-height:54px;font-size:16px}
+.trust{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.trust li::before{content:"✓";color:var(--good);font-weight:700;margin-right:8px}
 .legal-line{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.5}
 @media (prefers-reduced-motion:no-preference){.live{animation:pulse 2s ease-in-out infinite}@keyframes pulse{50%{opacity:.35}}}
 .slot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
@@ -290,7 +294,7 @@ window.addEventListener('hashchange', () => boot());
 const initLang = () => { const q = new URLSearchParams(location.search).get('lang'); if (q === 'en' || q === 'ja') return q; const s = lsGet('galaxy_lang', null); if (s === 'en' || s === 'ja') return s; return (navigator.language || '').toLowerCase().startsWith('en') ? 'en' : 'ja'; };
 const P = { lang: 'ja', step: 0, tab: 'result', form: { name: '', age: '', procs: [], concerns: '', budget: '', visit: '', history: '', contact: '', photos: [], consent: false },
   caseId: lsGet('galaxy_case', null), c: null, msgs: [], unsubs: [], slotDay: null, slotTime: null, sym: [], dayN: '', aPhoto: null, busy: false };
-P.lang = initLang();
+P.lang = initLang(); P.stats = 0;
 const tx = (ja, en) => (P.lang === 'en' ? en : ja);
 const pn = p => tx(p.ja, PROC_EN[p.id] || p.ja);
 const WD = ['日', '月', '火', '水', '木', '金', '土'], WDE = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -314,38 +318,57 @@ function renderPatient() {
   if (P.tab === 'chat' && P.caseId) { paintMsgs(); }
 }
 
-/* --- intake wizard --- */
+/* --- intake wizard (簡単3ステップ: 施術選択 → 写真・お悩み → ご予定 → 連絡先) --- */
+const GOALS = [
+  { id: 'eyes', ja: 'くっきり目元に', en: 'Brighter, defined eyes', procs: ['sekkai', 'megashira'] },
+  { id: 'nose', ja: '鼻をすっきり', en: 'A refined nose', procs: ['hana'] },
+  { id: 'face', ja: '小顔・フェイスライン', en: 'Slimmer face line', procs: ['shibo', 'botox'] },
+  { id: 'skin', ja: '肌をきれいに', en: 'Clearer skin', procs: ['laser', 'botox'] },
+  { id: 'young', ja: '若々しい印象に', en: 'A younger look', procs: ['lift', 'botox'] },
+];
+const goalOn = g => g.procs.every(id => P.form.procs.includes(id));
+function canNext() { const f = P.form; return P.step === 0 ? f.procs.length > 0 : P.step === 3 ? !!(f.name.trim() && f.contact.trim() && f.consent && !P.busy) : true; }
+function syncPrimary() { const b = document.querySelector('#primary'); if (b) b.disabled = !canNext(); }
+const pick = (key, list, cur) => `<div class="chips">${list.map(([v, en]) => `<button class="chip" data-act="pick" data-k="${key}" data-v="${esc(v)}" aria-pressed="${cur === v}">${esc(tx(v, en))}</button>`).join('')}</div>`;
 function pIntake() {
   const f = P.form, s = P.step;
-  const bar = `<div class="steps">${[0, 1, 2, 3].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
-  const back = tx('戻る', 'Back'), next = tx('次へ', 'Next');
+  const bar = `<div class="steps" aria-label="${tx('進行状況', 'Progress')}">${[0, 1, 2, 3].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
+  const back = `<button class="btn ghost" data-act="back">${tx('戻る', 'Back')}</button>`;
+  const opt = `<span class="badge" style="margin-left:6px">${tx('任意', 'Optional')}</span>`;
   if (s === 0) return `<div class="stack">
     <section class="hero">${`<span class="star">${star(110)}</span>`}
-      <h1>${tx('来韓前に、<br>病院と直接ご相談。', 'Talk directly with the clinic<br>before you travel to Korea.')}</h1>
-      <p>${tx('仲介業者を通さず、별성형외과のスタッフと日本語でやりとりできます。気になる施術と写真を送るだけ。費用の目安がその場でわかります。', 'Chat with 별성형외과 staff without going through an agent. Choose your treatments, send photos, and see an estimate of cost and stay length right away.')}</p></section>
-    <div class="card stack"><h3 class="disp">${tx('ご利用の流れ', 'How it works')}</h3>
-      <ol style="margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px">${tx('<li>希望の施術とお悩みを選ぶ</li><li>写真を送る（任意・最大3枚）</li><li>費用と滞在日数の目安を確認</li><li>チャット、またはビデオで医師スタッフに相談</li>', '<li>Choose your treatments and concerns</li><li>Send photos (optional, up to 3)</li><li>See estimates for cost and length of stay</li><li>Chat or video-call the clinic’s medical staff</li>')}</ol></div>
-    <div class="notice legal">${consentText()}</div>
-    <label class="row" style="align-items:flex-start;gap:10px;cursor:pointer"><input type="checkbox" id="consent" data-bind="consent" ${f.consent ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span>${tx('上記の内容と、お預かりした写真・個人情報を相談対応の目的で韓国の病院が取り扱うことに同意します。', 'I agree to the above, and to 별성형외과 handling my photos and personal information in Korea for the purpose of this consultation.')}</span></label>
-    <button class="btn block" data-act="next" ${f.consent ? '' : 'disabled'}>${tx('相談をはじめる', 'Start consultation')}</button></div>`;
-  if (s === 1) return `${bar}<div class="stack"><h2 class="disp">${tx('ご希望の施術', 'Treatments you’re interested in')}</h2><p class="muted small" style="margin:-6px 0 0">${tx('複数選べます。迷っている場合は「お悩み」に書いてください。', 'You can choose several. If you’re unsure, describe it under “Concerns”.')}</p>
-    <div class="chips">${cfg.procs.map(p => `<button class="chip" data-act="proc" data-v="${p.id}" aria-pressed="${f.procs.includes(p.id)}">${esc(pn(p))}</button>`).join('')}</div>
-    <label class="f">${tx('お悩み・理想のイメージ', 'Concerns and the look you want')}<textarea id="concerns" data-bind="concerns" placeholder="${tx('例：自然な二重にしたい。腫れが引くまでの期間が心配です。', 'e.g. I want a natural double eyelid. I’m worried about how long the swelling lasts.')}">${esc(f.concerns)}</textarea></label>
-    <div class="row"><button class="btn ghost" data-act="back">${back}</button><button class="btn" data-act="next" ${f.procs.length ? '' : 'disabled'} style="flex:1">${next}</button></div></div>`;
-  if (s === 2) return `${bar}<div class="stack"><h2 class="disp">${tx('写真とご予定', 'Photos and plans')}</h2>
-    <div><div class="muted small" style="margin-bottom:6px">${tx('お顔の写真（任意・最大3枚）。メイクなし・明るい場所で、正面と斜めがおすすめです。', 'Face photos (optional, up to 3). No makeup, bright light, front and angled views work best.')}</div>
+      <span class="pill">${tx('仲介手数料 0円・病院直営', 'Agent fee ¥0 · Run directly by the clinic')}</span>
+      <h1>${tx('来韓前に、<br>費用の目安がわかる。', 'Know your estimated cost<br>before you travel to Korea.')}</h1>
+      <p>${tx('気になる施術を選ぶだけ。約3分で、費用と滞在日数の目安を確認できます。', 'Just pick your treatments. In about 3 minutes, see an estimate of cost and length of stay.')}</p></section>
+    <div class="stack" style="gap:10px"><h2 class="disp" style="font-size:18px">${tx('気になる施術を選んでください', 'Which treatments interest you?')}</h2>
+      <div class="muted small">${tx('目的から選ぶ', 'Pick by goal')}</div>
+      <div class="chips">${GOALS.map(g => `<button class="chip" data-act="goal" data-v="${g.id}" aria-pressed="${goalOn(g)}">${tx(g.ja, g.en)}</button>`).join('')}</div>
+      <div class="muted small">${tx('施術から選ぶ（複数OK）', 'Or choose treatments (several OK)')}</div>
+      <div class="chips">${cfg.procs.map(p => `<button class="chip" data-act="proc" data-v="${p.id}" aria-pressed="${f.procs.includes(p.id)}">${esc(pn(p))}</button>`).join('')}</div></div>
+    <button class="btn block cta" id="primary" data-act="next" ${canNext() ? '' : 'disabled'}>${f.procs.length ? tx('費用の目安を見る →', 'See my estimate →') : tx('施術を選んでください', 'Choose a treatment to continue')}</button>
+    <ul class="trust"><li>${tx('通常24時間以内に病院スタッフがお返事', 'Clinic staff usually reply within 24 hours')}</li><li>${tx('写真・相談内容を見られるのは担当スタッフのみ', 'Only our assigned staff can see your photos and messages')}</li><li>${tx('相談だけでもOK。来院の義務はありません', 'Consultation only is fine. No obligation to visit')}</li></ul>
+    ${P.stats >= 50 ? `<div class="muted small" style="text-align:center">${tx(`これまでに${P.stats}件のご相談をいただいています`, `${P.stats} consultations received so far`)}</div>` : ''}
+    <div class="muted tiny" style="text-align:center;line-height:1.6">${tx('オンライン相談は診断・治療ではなく、情報提供です。最終判断は韓国での対面診察で行います。', 'Online consultation is information only, not diagnosis or treatment. Final decisions are made at an in-person exam in Korea.')}</div></div>`;
+  if (s === 1) return `${bar}<div class="stack"><h2 class="disp">${tx('写真とお悩み', 'Photos and concerns')}${opt}</h2>
+    <div class="notice legal">${tx('写真は、より正確な事前見積もりのためだけに使用します。閲覧できるのは担当スタッフのみです。<b>写真なしでも次へ進めます。</b>', 'Photos are used only to give you a more accurate estimate, and only our assigned staff can view them. <b>You can continue without photos.</b>')}</div>
+    <div><div class="muted small" style="margin-bottom:6px">${tx('お顔の写真（最大3枚）。メイクなし・明るい場所で、正面と斜めがおすすめです。', 'Face photos (up to 3). No makeup, bright light, front and angled views work best.')}</div>
       <div class="photos">${[0, 1, 2].map(i => f.photos[i] ? `<img src="${f.photos[i]}" alt="${tx('写真', 'Photo')} ${i + 1}" data-act="zoom" data-src="${i}">` : `<label class="ph" for="pf">${tx('＋ 追加', '+ Add')}</label>`).join('')}</div>
       <input type="file" id="pf" accept="image/*" multiple hidden>${f.photos.length ? `<button class="btn ghost sm" data-act="clrphoto" style="margin-top:8px">${tx('写真を削除', 'Remove photos')}</button>` : ''}</div>
-    <label class="f">${tx('年代', 'Age group')}<select id="age" data-bind="age">${opt(AGES, f.age)}</select></label>
-    <label class="f">${tx('ご予算の目安', 'Budget')}<select id="budget" data-bind="budget">${opt(BUDGETS, f.budget)}</select></label>
-    <label class="f">${tx('来韓予定時期', 'When do you plan to visit?')}<select id="visit" data-bind="visit">${opt(VISITS, f.visit)}</select></label>
+    <label class="f">${tx('お悩み・理想のイメージ', 'Concerns and the look you want')}<textarea id="concerns" data-bind="concerns" placeholder="${tx('例：自然な二重にしたい。腫れが引くまでの期間が心配です。', 'e.g. I want a natural double eyelid. I’m worried about how long the swelling lasts.')}">${esc(f.concerns)}</textarea></label>
+    <div class="row">${back}<button class="btn" id="primary" data-act="next" style="flex:1">${f.photos.length || f.concerns.trim() ? tx('次へ', 'Next') : tx('写真なしで次へ', 'Continue without photos')}</button></div></div>`;
+  if (s === 2) return `${bar}<div class="stack"><h2 class="disp">${tx('ご予定', 'Your plans')}${opt}</h2>
+    <div class="stack" style="gap:8px"><b class="small">${tx('年代', 'Age group')}</b>${pick('age', AGES, f.age)}</div>
+    <div class="stack" style="gap:8px"><b class="small">${tx('ご予算の目安', 'Budget')}</b>${pick('budget', BUDGETS, f.budget)}</div>
+    <div class="stack" style="gap:8px"><b class="small">${tx('来韓予定時期', 'When do you plan to visit?')}</b>${pick('visit', VISITS, f.visit)}</div>
     <label class="f">${tx('既往歴・アレルギー・服用中の薬（あれば）', 'Medical history, allergies, current medication (if any)')}<textarea id="history" data-bind="history" placeholder="${tx('例：麻酔でかゆみが出たことがあります', 'e.g. I had itching after anesthesia once')}">${esc(f.history)}</textarea></label>
-    <div class="row"><button class="btn ghost" data-act="back">${back}</button><button class="btn" data-act="next" ${f.age && f.budget && f.visit ? '' : 'disabled'} style="flex:1">${next}</button></div></div>`;
-  return `${bar}<div class="stack"><h2 class="disp">${tx('ご連絡先', 'Your details')}</h2>
+    <div class="row">${back}<button class="btn" id="primary" data-act="next" style="flex:1">${tx('次へ', 'Next')}</button></div></div>`;
+  return `${bar}<div class="stack"><h2 class="disp">${tx('最後に、ご連絡先', 'Last step: your details')}</h2>
     <label class="f">${tx('お名前（ニックネーム可）', 'Name (a nickname is fine)')}<input type="text" id="name" data-bind="name" value="${esc(f.name)}" autocomplete="nickname"></label>
     <label class="f">${tx('LINE ID またはメールアドレス', 'LINE ID or email address')}<input type="text" id="contact" data-bind="contact" value="${esc(f.contact)}" autocomplete="email"></label>
-    <p class="muted small" style="margin:0">${tx('お返事はこのアプリのチャットでお知らせします。通知用の連絡先は、スタッフからの確認にのみ使用します。', 'Replies will appear in this app’s chat. Your contact details are used only for confirmation by our staff.')}</p>
-    <div class="row"><button class="btn ghost" data-act="back">${back}</button><button class="btn" data-act="submit" ${f.name.trim() && f.contact.trim() && !P.busy ? '' : 'disabled'} style="flex:1">${P.busy ? tx('送信中…', 'Sending…') : tx('送信して目安を見る', 'Send and see estimate')}</button></div></div>`;
+    <p class="muted small" style="margin:0">${tx('お見積もり・ご相談の連絡以外には使用しません。返信はこのアプリのチャットでお知らせします。', 'Your contact details are used only for your estimate and consultation. Replies appear in this app’s chat.')}</p>
+    <div class="notice legal">${consentText()}</div>
+    <label class="row" style="align-items:flex-start;gap:10px;cursor:pointer"><input type="checkbox" id="consent" data-bind="consent" ${f.consent ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span class="small">${tx('上記の内容と、お預かりした写真・個人情報を相談対応の目的で韓国の病院が取り扱うことに同意します。', 'I agree to the above, and to 별성형외과 handling my photos and personal information in Korea for the purpose of this consultation.')}</span></label>
+    <div class="row">${back}<button class="btn cta" id="primary" data-act="submit" ${canNext() ? '' : 'disabled'} style="flex:1">${P.busy ? tx('送信中…', 'Sending…') : tx('無料の見積もりをすぐ見る', 'See my free estimate now')}</button></div></div>`;
 }
 async function submitCase() {
   P.busy = true; renderPatient();
@@ -582,9 +605,7 @@ document.addEventListener('input', e => {
   const v = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
   if (route().view === 'staff') { ST[k] = v; return; }
   if (k === 'dayN') { P.dayN = v; const b = document.querySelector('[data-act=asend]'); if (b) b.disabled = !(P.dayN && (P.aPhoto || P.sym.length)); return; }
-  P.form[k] = v;
-  if (k === 'consent') { document.querySelector('[data-act=next]').disabled = !v; }
-  else if (P.step >= 2) { const n = document.querySelector('[data-act=next]') || document.querySelector('[data-act=submit]'); if (n) { const f = P.form; n.disabled = P.step === 2 ? !(f.age && f.budget && f.visit) : !(f.name.trim() && f.contact.trim()); } }
+  P.form[k] = v; syncPrimary();
 });
 document.addEventListener('change', async e => {
   const t = e.target;
@@ -607,6 +628,8 @@ document.addEventListener('click', async e => {
   const f = P.form;
   if (a === 'next') { P.step++; renderPatient(); window.scrollTo(0, 0); }
   else if (a === 'back') { P.step--; renderPatient(); }
+  else if (a === 'goal') { const g = GOALS.find(x => x.id === v); f.procs = goalOn(g) ? f.procs.filter(id => !g.procs.includes(id)) : [...new Set([...f.procs, ...g.procs])]; renderPatient(); }
+  else if (a === 'pick') { f[b.dataset.k] = f[b.dataset.k] === v ? '' : v; renderPatient(); }
   else if (a === 'proc') { f.procs = f.procs.includes(v) ? f.procs.filter(x => x !== v) : [...f.procs, v]; renderPatient(); }
   else if (a === 'clrphoto') { f.photos = []; renderPatient(); }
   else if (a === 'submit') submitCase();
@@ -668,6 +691,7 @@ async function boot() {
     P.caseId = lsGet('galaxy_case', null); P.c = null;
     if (P.caseId) attachCase();
     renderPatient();
+    if (!P.caseId) api('/stats').then(d => { if (d?.consults >= 50) { P.stats = d.consults; if (!P.caseId && P.step === 0) renderPatient(); } }).catch(() => {});
   }
 }
 boot();
