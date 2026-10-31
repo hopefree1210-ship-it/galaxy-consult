@@ -446,6 +446,30 @@ body.pv .galaxy-seoul-slideshow img:nth-child(4){animation-delay:18s;object-fit:
 @media(max-width:560px){body.pv .galaxy-seoul-slideshow{height:clamp(240px,70vw,370px)}}
 @media(prefers-reduced-motion:reduce){body.pv .galaxy-seoul-slideshow img{animation:none;opacity:0}body.pv .galaxy-seoul-slideshow img:first-child{opacity:1}}
 
+
+/* iPhone: compact flag language controls and side-by-side photo/text hero. */
+body.pv header.top.light{box-sizing:border-box;width:100%;max-width:100%;min-width:0;display:flex;flex-wrap:nowrap;align-items:center;gap:6px}
+body.pv header.top.light .brand{flex:0 0 auto;min-width:0}
+body.pv header.top.light .sub{flex:0 1 auto;min-width:0}
+body.pv header.top.light .lang{display:flex;flex:0 0 auto;flex-wrap:nowrap;max-width:none;min-width:0;gap:2px;margin-left:auto;border-radius:999px;padding:2px;overflow:hidden}
+body.pv header.top.light .lang button{font-family:system-ui,'Apple Color Emoji','Segoe UI Emoji',sans-serif;font-size:18px;line-height:1;padding:7px 6px;min-width:30px;min-height:33px;white-space:nowrap}
+@media(max-width:560px){
+ body.pv header.top.light{padding:9px 8px;gap:4px;margin-inline:0}
+ body.pv header.top.light .brand{font-size:17px;letter-spacing:0;gap:3px}
+ body.pv header.top.light .brand span{font-size:19px}
+ body.pv header.top.light .sub{display:none}
+ body.pv header.top.light .lang{gap:1px;padding:2px}
+ body.pv header.top.light .lang button{font-size:17px;min-width:28px;min-height:32px;padding:6px 4px}
+ body.pv .galaxy-unified-hero{display:block;position:relative;min-height:350px;padding:0;overflow:hidden;background:#FFF1F7;border-radius:18px}
+ body.pv .galaxy-unified-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:65% center;z-index:-2}
+ body.pv .galaxy-unified-hero:before{position:absolute;inset:0;background:linear-gradient(90deg,#FFF5F9 0%,rgba(255,245,249,.98) 20%,rgba(255,245,249,.84) 42%,rgba(255,245,249,.28) 68%,rgba(255,245,249,0) 100%);z-index:-1}
+ body.pv .galaxy-unified-copy{position:relative;width:62%;max-width:62%;box-sizing:border-box;padding:23px 0 18px 14px}
+ body.pv .galaxy-unified-copy h1{font-size:clamp(17px,4.8vw,23px);line-height:1.4;letter-spacing:-.055em;margin:17px 0 13px;overflow-wrap:normal;word-break:keep-all}
+ body.pv .galaxy-unified-copy .galaxy-trust-brand{font-size:clamp(11px,3.3vw,15px);line-height:1.4}
+ body.pv .galaxy-unified-copy .galaxy-trust-foot{font-size:9px;line-height:1.45;margin-top:13px;padding-top:9px}
+ body.pv .galaxy-unified-copy .galaxy-trust-eyebrow{font-size:8px;line-height:1.4}
+}
+@media(max-width:375px){body.pv header.top.light .brand span{font-size:17px}body.pv header.top.light .lang button{font-size:16px;min-width:26px;padding:5px 3px}body.pv .galaxy-unified-copy{width:65%;max-width:65%;padding-left:11px}body.pv .galaxy-unified-copy h1{font-size:17px}}
 </style>
 </head>
 <body>
@@ -598,7 +622,7 @@ const opt = (list, cur) => `<option value="">${tx('選択してください', 'S
 
 function pHeader() {
   return `<header class="top light"><div class="brand">${star(20)}<span>Galaxy</span></div><div class="sub"><b>별성형외과</b>${tx('オンライン事前相談', 'Online pre-consultation')}</div>
-    <div class="lang" role="group" aria-label="Language"><button data-act="lang" data-v="ja" aria-pressed="${P.lang === 'ja'}">日本語</button><button data-act="lang" data-v="zh" aria-pressed="${P.lang === 'zh'}">中文</button><button data-act="lang" data-v="en" aria-pressed="${P.lang === 'en'}">English</button><button data-act="lang" data-v="ko" aria-pressed="${P.lang === 'ko'}">한국어</button></div></header>`;
+    <div class="lang" role="group" aria-label="Language"><button data-act="lang" data-v="ja" aria-pressed="${P.lang === 'ja'}" title="日本語" aria-label="日本語">🇯🇵</button><button data-act="lang" data-v="zh" aria-pressed="${P.lang === 'zh'}" title="中文" aria-label="中文">🇨🇳</button><button data-act="lang" data-v="en" aria-pressed="${P.lang === 'en'}" title="English" aria-label="English">🇺🇸</button><button data-act="lang" data-v="ko" aria-pressed="${P.lang === 'ko'}" title="한국어" aria-label="한국어">🇰🇷</button></div></header>`;
 }
 function pTabs() {
   const unread = P.c?.unreadPatient;
