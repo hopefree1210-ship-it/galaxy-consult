@@ -28,7 +28,8 @@ await ok('직원 답변·화상 확정이 환자에게 전달', async () => {
   const H = { cookie: ck }, id = C.id, S = { 'x-case-secret': C.secret };
   await j(`/api/staff/cases/${id}/messages`, { method: 'POST', headers: H, body: { ja: 'こんにちは', text: '안녕하세요' } });
   assert.equal((await j(`/api/staff/cases/${id}/meeting`, { method: 'POST', headers: H, body: { at: '2026-11-03T15:00', link: 'http://evil' } })).s, 400);
-  assert.equal((await j(`/api/staff/cases/${id}/meeting`, { method: 'POST', headers: H, body: { at: '2026-11-03T15:00', link: 'https://zoom.us/j/1' } })).s, 200);
+  const future = new Date(Date.now() + 86400000).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul', hour12: false }).replace(' ', 'T').slice(0,16);
+  assert.equal((await j(`/api/staff/cases/${id}/meeting`, { method: 'POST', headers: H, body: { at: future, link: 'https://zoom.us/j/1' } })).s, 200);
   const c = await j('/api/cases/' + id, { headers: S }), m = await j(`/api/cases/${id}/messages`, { headers: S });
   assert.equal(c.b.meeting.status, 'confirmed'); assert.equal(c.b.unreadPatient, true); assert.ok(m.b.some(x => x.ja === 'こんにちは'));
 });
@@ -56,5 +57,26 @@ await ok('영어 환자: 영어 안내문·영어 시술명, 언어 변경', asy
   assert.match(m.b[0].ja, /^\[New inquiry\] Nose surgery/); assert.match(m.b[1].ja, /We have received/);
   assert.equal((await j(`/api/cases/${r.b.id}/lang`, { method: 'POST', headers: S, body: { lang: 'ja' } })).s, 200);
   assert.equal((await j('/api/cases/' + r.b.id, { headers: S })).b.lang, 'ja');
+});
+
+await ok('무료 상담 신청 검증 및 관리자 접수', async () => {
+  assert.equal((await j('/api/consultations/free', { method: 'POST', body: { name: 'Mika', country: 'Japan', contact: 'mika@example.com', channel: 'email' } })).s, 400);
+  const r = await j('/api/consultations/free', { method: 'POST', body: { name: 'Mika', country: 'Japan', contact: 'mika@example.com', channel: 'email', lang: 'ja', concerns: 'consultation', consent: true } });
+  assert.equal(r.s, 201);
+  globalThis.FREE = r.b;
+  const c = await j('/api/cases/' + r.b.id, { headers: { 'x-case-secret': r.b.secret } });
+  assert.equal(c.b.inquiryType, 'free_consultation');
+  const list = await j('/api/staff/cases', { headers: { cookie: ck } });
+  assert.ok(list.b.some(x => x.id === r.b.id && x.unreadStaff));
+});
+await ok('예약 미확정 상태 상담 시작 차단 및 접근 권한 검증', async () => {
+  const id = FREE.id, S = { 'x-case-secret': FREE.secret }, H = { cookie: ck };
+  assert.equal((await j(`/api/cases/${id}/consultation/start`, { method: 'POST', headers: S })).s, 409);
+  assert.equal((await j(`/api/staff/cases/${id}/consultation/start`, { method: 'POST' })).s, 401);
+  assert.equal((await j(`/api/cases/${id}/consultation/start`, { method: 'POST', headers: { 'x-case-secret': 'wrong' } })).s, 404);
+  const tomorrow = new Date(Date.now() + 86400000).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul', hour12: false }).replace(' ', 'T').slice(0,16);
+  assert.equal((await j(`/api/cases/${id}/meeting`, { method: 'POST', headers: S, body: { at: tomorrow } })).s, 200);
+  assert.equal((await j(`/api/staff/cases/${id}/meeting`, { method: 'POST', headers: H, body: { at: tomorrow } })).s, 200);
+  assert.equal((await j(`/api/cases/${id}/consultation/start`, { method: 'POST', headers: S })).s, 409);
 });
 srv.close();
