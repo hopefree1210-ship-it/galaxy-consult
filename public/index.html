@@ -434,6 +434,17 @@ body.pv .galaxy-seoul-slideshow img:nth-child(2){animation-delay:6s;object-fit:c
 @keyframes galaxy-seoul-two{0%{opacity:0}4%{opacity:1}46%{opacity:1}50%{opacity:0}100%{opacity:0}}
 @media(max-width:560px){body.pv .galaxy-seoul-slideshow{height:clamp(240px,72vw,370px)}body.pv .galaxy-seoul-slideshow img:nth-child(2){object-fit:contain}}
 @media(prefers-reduced-motion:reduce){body.pv .galaxy-seoul-slideshow img{animation:none;opacity:0}body.pv .galaxy-seoul-slideshow img:first-child{opacity:1}}
+
+/* Four scenic photos, six seconds each; override earlier two-photo animation. */
+body.pv .galaxy-seoul-slideshow{height:clamp(210px,42vw,330px)}
+body.pv .galaxy-seoul-slideshow img{animation:galaxy-four-photos 24s infinite;object-fit:cover;object-position:center}
+body.pv .galaxy-seoul-slideshow img:nth-child(1){animation-delay:0s}
+body.pv .galaxy-seoul-slideshow img:nth-child(2){animation-delay:6s;object-fit:cover;object-position:center 52%}
+body.pv .galaxy-seoul-slideshow img:nth-child(3){animation-delay:12s;object-fit:cover;object-position:center}
+body.pv .galaxy-seoul-slideshow img:nth-child(4){animation-delay:18s;object-fit:contain;object-position:center;background:#F8F4F5}
+@keyframes galaxy-four-photos{0%{opacity:0}2%{opacity:1}23%{opacity:1}25%{opacity:0}100%{opacity:0}}
+@media(max-width:560px){body.pv .galaxy-seoul-slideshow{height:clamp(240px,70vw,370px)}}
+@media(prefers-reduced-motion:reduce){body.pv .galaxy-seoul-slideshow img{animation:none;opacity:0}body.pv .galaxy-seoul-slideshow img:first-child{opacity:1}}
 </style>
 </head>
 <body>
@@ -701,7 +712,9 @@ function pIntake() {
       <p class="small muted">${tx('韓国滞在に便利な地図・翻訳・交通・観光サービスです。', 'Useful maps, translation, transport and travel services for your stay in Korea.')}</p>
       <div class="galaxy-seoul-photo galaxy-seoul-slideshow" aria-label="${tx('韓国の風景', 'Scenes of Korea')}">
         <img src="/seoul-street.jpg.jpg" alt="${tx('ソウルの街並み', 'Seoul street scene')}" loading="lazy">
-        <img src="/namsan-tower.jpg.jpg" alt="${tx('南山タワーと韓屋', 'Namsan Tower and traditional Korean houses')}" loading="lazy">
+        <img src="/korea-hanok.jpg.jpg" alt="${tx('南山韓屋村の風景', 'Traditional Korean hanok village')}" loading="lazy">
+        <img src="/korea-busan-bridge.jpg.jpg" alt="${tx('釜山の広安大橋の夜景', 'Busan Gwangan Bridge at night')}" loading="lazy">
+        <img src="/korea-temple-food.jpg.jpg" alt="${tx('韓国の伝統的な寺院料理', 'Traditional Korean temple cuisine')}" loading="lazy">
       </div>
 
       <div class="galaxy-clinic-visit">
