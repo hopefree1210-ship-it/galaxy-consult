@@ -407,6 +407,8 @@ body.pv .galaxy-clinic-visit-actions{display:flex;flex-wrap:wrap;gap:8px;margin-
 body.pv .galaxy-clinic-visit-actions a{flex:1;min-width:110px;border-radius:99px;background:#F8D9E8;color:#8C265B;text-decoration:none;text-align:center;font-size:12px;font-weight:800;padding:12px 8px}
 body.pv .galaxy-clinic-visit-actions a:last-child{background:white;border:1px solid #DFAEC6}
 @media(max-width:390px){body.pv .galaxy-travel-app-grid a{min-height:110px;padding:12px 5px}body.pv .galaxy-travel-app-grid b{font-size:12px}body.pv .galaxy-travel-app-grid small{font-size:10px}}
+
+body.pv .galaxy-seoul-photo{width:100%;height:160px;border-radius:17px;overflow:hidden;margin:4px 0 14px;background:linear-gradient(120deg,#F9E3F2,#E8DAF9)}body.pv .galaxy-seoul-photo img{width:100%;height:100%;object-fit:cover;object-position:center 45%;display:block}body.pv .galaxy-clinic-visit{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);align-items:center;gap:16px}body.pv .galaxy-clinic-exterior{width:100%;height:210px;object-fit:cover;object-position:center 48%;border-radius:15px;display:block}@media(max-width:460px){body.pv .galaxy-clinic-visit{grid-template-columns:minmax(0,1fr);gap:13px}body.pv .galaxy-clinic-exterior{height:230px}body.pv .galaxy-seoul-photo{height:135px}}
 </style>
 </head>
 <body>
@@ -668,8 +670,10 @@ function pIntake() {
     <section class="lp-card stack galaxy-travel-last" style="margin-top:10px;border:1.5px solid #E8C4D8;background:linear-gradient(145deg,#fff,#FFF7FC)">
       <div class="galaxy-feature-head"><div><small>YOUR KOREA TRAVEL GUIDE</small><h2>${tx('韓国旅行ガイド', 'Your Korea travel guide')}</h2></div></div>
       <p class="small muted">${tx('韓国滞在に便利な地図・翻訳・交通・観光サービスです。', 'Useful maps, translation, transport and travel services for your stay in Korea.')}</p>
+      <div class="galaxy-seoul-photo"><img src="/seoul-skyline.webp" alt="${tx('ソウルの夜景', 'Seoul skyline')}" loading="lazy" onerror="this.parentNode.style.display='none'"></div>
       <div class="galaxy-clinic-visit">
-        <div class="galaxy-clinic-visit-copy"><small>BYUL PLASTIC SURGERY</small><h3>${tx('ビョル美容外科へのアクセス', 'Visit Byeol Plastic Surgery')}</h3>
+          <img class="galaxy-clinic-exterior" src="/byul-clinic-exterior.webp" alt="${tx('ビョル美容外科の建物外観', 'Byeol Plastic Surgery building exterior')}" loading="lazy" onerror="this.style.display='none'">
+      <div class="galaxy-clinic-visit-copy"><small>BYUL PLASTIC SURGERY</small><h3>${tx('ビョル美容外科へのアクセス', 'Visit Byeol Plastic Surgery')}</h3>
         <p>${tx('ソウル特別市 瑞草区 沙平大路56キル 6', '6, Sapyeong-daero 56-gil, Seocho-gu, Seoul')}</p>
         <div class="galaxy-clinic-visit-actions"><a href="https://map.naver.com/p/search/%EB%B3%84%EC%84%B1%ED%98%95%EC%99%B8%EA%B3%BC" target="_blank" rel="noopener noreferrer">${tx('地図で見る', 'Find directions')} ↗</a><a href="tel:0218338898">${tx('電話する', 'Call clinic')} ↗</a></div></div>
       </div>
