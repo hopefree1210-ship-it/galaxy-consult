@@ -425,6 +425,15 @@ body.pv .galaxy-doctors-card{display:grid;grid-template-columns:minmax(0,1.2fr) 
 body.pv .lp>.galaxy-doctors-card{margin:0 0 15px;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);padding:14px;gap:18px}
 body.pv .lp>.galaxy-doctors-card .galaxy-doctors-photo{height:auto;max-height:260px;aspect-ratio:16/9;object-fit:contain;object-position:center;background:#F4F0F3}
 @media(max-width:560px){body.pv .lp>.galaxy-doctors-card{grid-template-columns:minmax(0,1fr);gap:10px}body.pv .lp>.galaxy-doctors-card .galaxy-doctors-photo{width:100%;max-height:none;height:auto;aspect-ratio:auto;object-fit:contain}body.pv .lp>.galaxy-doctors-card .galaxy-doctors-copy h3{font-size:17px;margin:6px 0}}
+
+/* Two-image travel slideshow: Seoul street then Namsan Tower. */
+body.pv .galaxy-seoul-slideshow{height:clamp(210px,42vw,330px);background:#F4EFF5}
+body.pv .galaxy-seoul-slideshow img{animation:galaxy-seoul-two 12s infinite;object-position:center}
+body.pv .galaxy-seoul-slideshow img:nth-child(1){animation-delay:0s}
+body.pv .galaxy-seoul-slideshow img:nth-child(2){animation-delay:6s;object-fit:contain;object-position:center center;background:#F4EFF5}
+@keyframes galaxy-seoul-two{0%{opacity:0}4%{opacity:1}46%{opacity:1}50%{opacity:0}100%{opacity:0}}
+@media(max-width:560px){body.pv .galaxy-seoul-slideshow{height:clamp(240px,72vw,370px)}body.pv .galaxy-seoul-slideshow img:nth-child(2){object-fit:contain}}
+@media(prefers-reduced-motion:reduce){body.pv .galaxy-seoul-slideshow img{animation:none;opacity:0}body.pv .galaxy-seoul-slideshow img:first-child{opacity:1}}
 </style>
 </head>
 <body>
@@ -691,7 +700,6 @@ function pIntake() {
       <div class="galaxy-feature-head"><div><small>TRAVEL WITH BYEOL PLASTIC SURGERY</small><h2>${tx('ビョル美容外科と楽しむ韓国旅行', 'Explore Korea with Byeol Plastic Surgery')}</h2></div></div>
       <p class="small muted">${tx('韓国滞在に便利な地図・翻訳・交通・観光サービスです。', 'Useful maps, translation, transport and travel services for your stay in Korea.')}</p>
       <div class="galaxy-seoul-photo galaxy-seoul-slideshow" aria-label="${tx('韓国の風景', 'Scenes of Korea')}">
-        <img src="/seoul-skyline.webp" alt="${tx('ソウルの夜景', 'Seoul skyline')}" loading="lazy">
         <img src="/seoul-street.jpg.jpg" alt="${tx('ソウルの街並み', 'Seoul street scene')}" loading="lazy">
         <img src="/namsan-tower.jpg.jpg" alt="${tx('南山タワーと韓屋', 'Namsan Tower and traditional Korean houses')}" loading="lazy">
       </div>
