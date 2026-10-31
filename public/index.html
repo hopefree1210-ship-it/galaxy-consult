@@ -578,18 +578,7 @@ function pIntake() {
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('通常24時間以内に<br>スタッフが返信', 'Staff usually reply<br>within 24 hours')}</span></div>
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('写真・相談内容は<br>担当スタッフのみ確認', 'Photos & messages seen<br>only by assigned staff')}</span></div>
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('相談だけでも<br>OK', 'Consultation only<br>is fine')}</span></div></div>
-    <section class="lp-card stack galaxy-reviews" style="margin-top:14px">
-      <div class="galaxy-feature-head"><div><small>PATIENT VOICES</small><h2>${tx('ご感想をお聞かせください', 'Share your experience')}</h2></div></div>
-      <p class="small muted">${tx('相談や来院のご感想をお寄せください。内容を確認してから公開します。', 'Leave a review of your consultation or visit. Reviews are checked before publication.')}</p>
-      <form id="galaxy-review-form" class="stack" style="gap:9px">
-        <label class="f">${tx('ニックネーム', 'Nickname')}<input name="nickname" maxlength="40" minlength="2" required autocomplete="nickname" placeholder="${tx('ニックネーム', 'Nickname')}"></label>
-        <label class="f">${tx('満足度', 'Rating')}<select name="rating" required><option value="5">★★★★★ (5)</option><option value="4">★★★★☆ (4)</option><option value="3">★★★☆☆ (3)</option><option value="2">★★☆☆☆ (2)</option><option value="1">★☆☆☆☆ (1)</option></select></label>
-        <label class="f">${tx('口コミ内容', 'Your review')}<textarea name="body" minlength="10" maxlength="1000" required placeholder="${tx('ご相談・ご来院の体験をお書きください。', 'Tell us about your experience.')}" rows="3"></textarea></label>
-        <button type="submit" class="btn block">${tx('口コミを送信', 'Submit review')}</button>
-        <p id="galaxy-review-feedback" class="small" role="status" aria-live="polite"></p>
-      </form>
-      <div id="galaxy-approved-reviews" class="stack" aria-live="polite"></div>
-    </section>
+
     <section class="lp-card stack galaxy-social" style="margin-top:16px">
       <div class="galaxy-feature-head"><div><small>BYEOL SOCIAL</small><h2>${tx('ビョル美容外科の公式SNS', 'Byeol Plastic Surgery on social media')}</h2></div></div>
       <p class="small muted">${tx('病院の動画や最新情報をご覧ください。', 'Watch clinic videos and get the latest updates.')}</p>
@@ -620,6 +609,18 @@ function pIntake() {
       <div class="galaxy-feature-head"><div><small>AFTERCARE SUPPORT</small><h2>${tx('手術後のケア', 'Post-surgery aftercare')}</h2></div></div>
       <p class="small">${tx('休息・傷口の清潔・薬の服用・再診などの一般的な注意点を確認できます。相談申込後は写真や症状をスタッフに送信できます。', 'Review general guidance on rest, wound care, medicines and follow-up. After submitting a consultation, you can send photos and symptoms to staff.')}</p>
       <div class="notice">${tx('強い痛み、止まらない出血、呼吸困難などがある場合は、返信を待たずに直ちに医療機関に相談してください。', 'Seek urgent medical care for severe pain, uncontrolled bleeding or breathing difficulty; do not wait for a chat response.')}</div>
+    </section>
+    <section class="lp-card stack galaxy-reviews" style="margin-top:14px">
+      <div class="galaxy-feature-head"><div><small>PATIENT VOICES</small><h2>${tx('ご感想をお聞かせください', 'Share your experience')}</h2></div></div>
+      <p class="small muted">${tx('相談や来院のご感想をお寄せください。内容を確認してから公開します。', 'Leave a review of your consultation or visit. Reviews are checked before publication.')}</p>
+      <form id="galaxy-review-form" class="stack" style="gap:9px">
+        <label class="f">${tx('ニックネーム', 'Nickname')}<input name="nickname" maxlength="40" minlength="2" required autocomplete="nickname" placeholder="${tx('ニックネーム', 'Nickname')}"></label>
+        <label class="f">${tx('満足度', 'Rating')}<select name="rating" required><option value="5">★★★★★ (5)</option><option value="4">★★★★☆ (4)</option><option value="3">★★★☆☆ (3)</option><option value="2">★★☆☆☆ (2)</option><option value="1">★☆☆☆☆ (1)</option></select></label>
+        <label class="f">${tx('口コミ内容', 'Your review')}<textarea name="body" minlength="10" maxlength="1000" required placeholder="${tx('ご相談・ご来院の体験をお書きください。', 'Tell us about your experience.')}" rows="3"></textarea></label>
+        <button type="submit" class="btn block">${tx('口コミを送信', 'Submit review')}</button>
+        <p id="galaxy-review-feedback" class="small" role="status" aria-live="polite"></p>
+      </form>
+      <div id="galaxy-approved-reviews" class="stack" aria-live="polite"></div>
     </section>
     <section class="lp-card stack galaxy-travel-last" style="margin-top:10px;border:1.5px solid #E8C4D8;background:linear-gradient(145deg,#fff,#FFF7FC)">
       <div class="galaxy-feature-head"><div><small>YOUR KOREA TRAVEL GUIDE</small><h2>${tx('韓国旅行ガイド', 'Your Korea travel guide')}</h2></div></div>
