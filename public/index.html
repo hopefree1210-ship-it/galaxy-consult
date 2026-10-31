@@ -307,6 +307,32 @@ body.pv .selection-head{margin-top:4px}
 @media(max-width:430px){body.pv .lp-hero{min-height:360px;padding:29px 17px 33px}body.pv .lp-hero:before{font-size:9px;margin-bottom:14px}body.pv .lp-hero h1{font-size:26px;max-width:83%}body.pv .lp-hero p{font-size:11px;max-width:58%}body.pv .lp-hero img.photo{width:64%;object-position:50% center}body.pv .galaxy-photo-menu{gap:5px}body.pv .galaxy-photo-menu img{height:77px}body.pv .galaxy-photo-menu button span{font-size:9px;padding:8px 2px}body.pv .galaxy-benefits{font-size:9px}body.pv .galaxy-feature-head h2{font-size:21px}}
 @media(prefers-reduced-motion:reduce){body.pv *{scroll-behavior:auto}}
 
+
+/* Colorful beauty-plan selection: crisp, accessible and mobile friendly */
+body.pv .selection-head small{color:#C21F65;font-size:11px;letter-spacing:.22em}
+body.pv .selection-head h2{color:#16152E;font-size:clamp(23px,5vw,29px)}
+body.pv .lp-card:has(.goals){border:1.5px solid #E9A7D4;border-radius:25px;background:radial-gradient(ellipse at 100% 0%,#F5E7FF 0,transparent 46%),linear-gradient(180deg,#fff,#FFFCFE);box-shadow:0 12px 28px #B93F8120}
+body.pv .lp-card:has(.goals) .lp-h{color:#141329;font-weight:800}
+body.pv .lp-card:has(.goals) .lp-h .n{background:linear-gradient(150deg,#A10F55,#FF5387);color:#fff;box-shadow:0 5px 12px #DA38784A}
+body.pv .lp-card:has(.goals) .lp-h small{color:#77758C}
+body.pv .goals{gap:7px}
+body.pv .goal{min-height:106px;padding:13px 3px 10px;border-radius:16px;border-width:1.5px;font-size:11px;font-weight:800;line-height:1.4;color:#19142F;box-shadow:0 2px 7px #2B123108}
+body.pv .goal svg{width:31px;height:31px;stroke-width:1.8}
+body.pv .goal:nth-child(1){background:linear-gradient(160deg,#FFF2F8,#FFE0ED);border-color:#F2B5D1}
+body.pv .goal:nth-child(1) svg{stroke:#B71968}
+body.pv .goal:nth-child(2){background:linear-gradient(160deg,#FCF6FF,#ECDDFF);border-color:#DCC2F7}
+body.pv .goal:nth-child(2) svg{stroke:#A02076}
+body.pv .goal:nth-child(3){background:linear-gradient(160deg,#FFF8F3,#FFE4E0);border-color:#F7C8C2}
+body.pv .goal:nth-child(3) svg{stroke:#E45A65}
+body.pv .goal:nth-child(4){background:linear-gradient(160deg,#EFFFF9,#D9F3EF);border-color:#B6E4DA}
+body.pv .goal:nth-child(4) svg{stroke:#198C7C}
+body.pv .goal:nth-child(5){background:linear-gradient(160deg,#F4F6FF,#DFE4FF);border-color:#C6CFFF}
+body.pv .goal:nth-child(5) svg{stroke:#4D55D4}
+body.pv .goal[aria-pressed=true]{background:linear-gradient(145deg,#FA6D89,#C21D70)!important;border-color:#C21D70!important;color:#fff!important;box-shadow:0 8px 18px #C21D7036!important}
+body.pv .goal[aria-pressed=true] svg{stroke:#fff!important}
+body.pv .goal:focus-visible{outline:3px solid #A51D75;outline-offset:3px}
+@media(max-width:390px){body.pv .goals{gap:5px}body.pv .goal{font-size:10px;padding-inline:2px;min-height:99px}body.pv .goal svg{width:26px;height:26px}}
+
 </style>
 </head>
 <body>
