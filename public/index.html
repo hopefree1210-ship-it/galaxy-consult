@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#141A3C">
+<meta name="theme-color" content="#FFFFFF">
 <title>GALAXY Consult</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Outfit:wght@600;700&family=Noto+Sans+KR:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
 <style>
 html{color-scheme:light}body{margin:0}
 /* Layout: patient = one narrow mobile column with bottom tabs; staff = inbox list + case detail (stacked on phones). Night-sky ink header, rose accent. */
@@ -154,6 +154,72 @@ table.pt input{min-height:36px;padding:4px 8px;width:5.5em}
 .lightbox img{max-width:100%;max-height:100%;border-radius:8px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--night);color:var(--night-ink);padding:9px 16px;border-radius:999px;font-size:13px;z-index:60}
 @media (prefers-reduced-motion:no-preference){.card,.hero{animation:rise .35s ease both}@keyframes rise{from{opacity:.001;transform:translateY(6px)}to{opacity:1;transform:none}}}
+
+/* --- v7 patient landing (light, mobile-first) --- */
+body.pv::before{background:var(--surface)}
+header.top.light{background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line)}
+header.top.light .brand{font-family:'Outfit',var(--f-body);font-weight:700;font-size:22px;letter-spacing:.02em;color:var(--accent)}
+header.top.light .sub{opacity:1;color:var(--muted);font-size:11px;text-align:left;margin-left:2px;border-left:1px solid var(--line);padding-left:10px}
+header.top.light .sub b{display:block;color:var(--ink);font-size:12px}
+header.top.light .lang{border-color:var(--line);margin-left:auto}
+header.top.light .lang button{color:var(--muted);opacity:1}
+header.top.light .lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.lp{display:flex;flex-direction:column;gap:18px;padding-top:6px}
+.lp-hero{position:relative;overflow:hidden;border-radius:22px;padding:22px 20px 20px;background:linear-gradient(135deg,var(--tint),var(--surface) 70%);border:1px solid var(--line)}
+.lp-hero .pill2{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:12.5px;border-radius:999px;padding:4px 12px;margin-bottom:12px}
+.lp-hero{min-height:200px}.lp-hero h1{font-family:var(--f-body);font-weight:900;font-size:25px;line-height:1.35;letter-spacing:.01em;max-width:9.5em;position:relative;z-index:1}
+.lp-hero h1 em{font-style:normal;color:var(--accent)}
+.lp-hero p{margin:10px 0 0;color:var(--muted);font-size:13.5px;position:relative;z-index:1;max-width:12em}
+.lp-hero .art{position:absolute;right:-6px;bottom:0;line-height:0;pointer-events:none}
+.lp-hero img.photo{position:absolute;right:0;bottom:0;height:100%;max-width:48%;object-fit:cover;object-position:top;mask-image:linear-gradient(90deg,transparent,#000 35%)}
+.lp-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px 16px;box-shadow:0 6px 24px rgba(20,24,58,.06)}
+.lp-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:16px;font-weight:900}
+.lp-h .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:13px;font-weight:700}
+.goals{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media (max-width:359px){.goals{grid-template-columns:repeat(3,1fr)}}
+.goal{border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:700;line-height:1.3;min-height:84px}
+.goal svg{width:28px;height:28px;stroke:var(--accent);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.goal[aria-pressed="true"]{border-color:var(--accent);background:var(--tint);color:var(--accent)}
+.plist{display:flex;flex-direction:column;gap:8px}
+.proc-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;cursor:pointer;min-height:52px;font-weight:700}
+.proc-row .box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;color:transparent;font-size:14px;line-height:1}
+.proc-row .lbl{flex:1}
+.proc-row .chev{color:var(--muted);font-size:18px}
+.proc-row[aria-pressed="true"]{border-color:var(--accent);background:var(--tint)}
+.proc-row[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cta{font-size:16.5px;min-height:54px;border-radius:999px;font-weight:900;box-shadow:0 8px 20px rgba(194,59,103,.28)}
+.cta:disabled{box-shadow:none}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tgrid div{text-align:center;font-size:11.5px;line-height:1.45;color:var(--muted);padding:12px 4px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.tgrid b{display:block;color:var(--ink);font-size:12.5px;margin-top:4px}
+.tgrid svg{width:24px;height:24px;stroke:var(--accent);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+/* v8: match reference */
+header.top.light .sub{white-space:nowrap;font-size:10.5px}header.top.light .brand{font-size:20px}@media (max-width:380px){header.top.light .sub{display:none}}
+header.top.light .brand{display:flex;align-items:center;gap:6px}
+header.top.light .brand svg{color:var(--accent)}
+.lp{gap:14px;padding-top:0}
+.lp-hero{margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));border-radius:0;border:0;min-height:300px;padding:22px max(16px,env(safe-area-inset-left,0px)) 56px;background:linear-gradient(180deg,#FBE9EF 0%,#FFF6F8 70%,var(--bg) 100%)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .lp-hero{background:linear-gradient(180deg,#2A1624,var(--bg))}}
+.lp-hero .pill2{background:var(--surface);color:var(--accent);border:1.5px solid var(--accent);font-size:12.5px}
+.lp-hero h1{font-size:27px;line-height:1.35;max-width:none;color:var(--ink)}
+.lp-hero h1 small{font-size:.82em}
+.lp-hero p{color:var(--muted);max-width:14em}
+.lp-hero img.photo{height:112%;max-width:62%;right:0;bottom:0;mask-image:linear-gradient(90deg,transparent,#000 40%),linear-gradient(0deg,transparent,#000 22%);-webkit-mask-composite:source-in;mask-composite:intersect}
+.lp-hero.hp .art{display:none}
+.lp-card{margin-top:-30px;position:relative;z-index:2;border-radius:24px;padding:20px 14px}
+.lp-card~.lp-card{margin-top:0}
+.lp-h{align-items:center;gap:12px;margin-bottom:14px;font-size:19px}
+.lp-h small{display:block;font-size:12.5px;font-weight:400;color:var(--muted);margin-top:2px}
+.lp-h .n{width:38px;height:38px;font-size:18px}
+.goal{border-radius:12px;min-height:92px;font-weight:500}
+.goal[aria-pressed="true"]{font-weight:700}
+.proc-row{padding:9px 14px;min-height:46px;font-weight:500;border-radius:10px;gap:14px}
+.proc-row .box{border-radius:6px;width:22px;height:22px;border-width:1.5px;border-color:#C9CCDB}
+.plist{gap:6px}
+.tgrid{gap:4px}
+.tgrid div{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 2px;font-size:11px;color:var(--ink)}
+.tgrid svg{width:22px;height:22px;stroke-width:2.2}
 </style>
 </head>
 <body>
@@ -303,8 +369,8 @@ const consentText = () => tx(CONSENT_JA, CONSENT_EN);
 const opt = (list, cur) => `<option value="">${tx('選択してください', 'Select')}</option>` + list.map(([v, en]) => `<option value="${esc(v)}" ${cur === v ? 'selected' : ''}>${esc(tx(v, en))}</option>`).join('');
 
 function pHeader() {
-  return `<header class="top"><div class="brand">${star(18)}<span>GALAXY</span></div><div class="sub">별성형외과<br>${tx('オンライン事前相談', 'Online pre-consultation')}</div>
-    <div class="lang" role="group" aria-label="Language"><button data-act="lang" data-v="ja" aria-pressed="${P.lang === 'ja'}">JP</button><button data-act="lang" data-v="en" aria-pressed="${P.lang === 'en'}">EN</button></div></header>`;
+  return `<header class="top light"><div class="brand">${star(20)}<span>Galaxy</span></div><div class="sub"><b>별성형외과</b>${tx('オンライン事前相談', 'Online pre-consultation')}</div>
+    <div class="lang" role="group" aria-label="Language"><button data-act="lang" data-v="ja" aria-pressed="${P.lang === 'ja'}">日本語</button><button data-act="lang" data-v="en" aria-pressed="${P.lang === 'en'}">English</button></div></header>`;
 }
 function pTabs() {
   const unread = P.c?.unreadPatient;
@@ -312,19 +378,26 @@ function pTabs() {
   return `<div class="tabbar"><div class="in">${t.map(([k, l, i]) => `<button data-act="tab" data-v="${k}" aria-current="${P.tab === k}"><span aria-hidden="true">${i}</span>${l}${k === 'chat' && unread && P.tab !== 'chat' ? '<span class="dot"></span>' : ''}</button>`).join('')}</div></div>`;
 }
 function renderPatient() {
-  document.documentElement.lang = P.lang;
+  document.documentElement.lang = P.lang; document.body.classList.add('pv');
   const body = !P.caseId ? pIntake() : P.c ? ({ result: pResult, chat: pChat, book: pBook, after: pAfter }[P.tab])() : `<p class="muted">${tx('読み込み中…', 'Loading…')}</p>`;
   $('#app').innerHTML = `<div class="wrap">${pHeader()}<main>${body}</main>${P.caseId && P.c ? pTabs() : ''}</div>`;
   if (P.tab === 'chat' && P.caseId) { paintMsgs(); }
 }
 
 /* --- intake wizard (簡単3ステップ: 施術選択 → 写真・お悩み → ご予定 → 連絡先) --- */
+const IC = {
+  eyes: '<path d="M2 12s4-6.5 10-6.5S22 12 22 12s-4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  nose: '<path d="M12 3c0 6-1 9-3.5 12.5C7 17.5 8.5 19 12 19s5-1.500 3.500-3.500C13 12 12 9 12 3z"/>',
+  face: '<path d="M5 6c0 8 2.500 14 7 14s7-6 7-14"/><path d="M4 4l3 2M20 4l-3 2"/>',
+  skin: '<path d="M12 3l1.800 5.200L19 10l-5.200 1.800L12 17l-1.800-5.200L5 10l5.200-1.800z"/><path d="M19 17l.7 1.800L21.500 19.500 19.700 20.200 19 22l-.7-1.800-1.800-.7 1.800-.7z"/>',
+  young: '<path d="M12 21s-8-5-8-11a4.500 4.500 0 0 1 8-2.800A4.500 4.500 0 0 1 20 10c0 6-8 11-8 11z"/>',
+};
 const GOALS = [
-  { id: 'eyes', ja: 'くっきり目元に', en: 'Brighter, defined eyes', procs: ['sekkai', 'megashira'] },
-  { id: 'nose', ja: '鼻をすっきり', en: 'A refined nose', procs: ['hana'] },
-  { id: 'face', ja: '小顔・フェイスライン', en: 'Slimmer face line', procs: ['shibo', 'botox'] },
-  { id: 'skin', ja: '肌をきれいに', en: 'Clearer skin', procs: ['laser', 'botox'] },
-  { id: 'young', ja: '若々しい印象に', en: 'A younger look', procs: ['lift', 'botox'] },
+  { id: 'eyes', ja: '目元を<br>はっきり', en: 'Brighter<br>eyes', procs: ['sekkai', 'megashira'] },
+  { id: 'nose', ja: '鼻を<br>整える', en: 'Refined<br>nose', procs: ['hana'] },
+  { id: 'face', ja: '小顔・<br>輪郭', en: 'Slimmer<br>face', procs: ['shibo', 'botox'] },
+  { id: 'skin', ja: '肌を<br>きれいに', en: 'Clearer<br>skin', procs: ['laser', 'botox'] },
+  { id: 'young', ja: '若々しい<br>印象', en: 'Younger<br>look', procs: ['lift', 'botox'] },
 ];
 const goalOn = g => g.procs.every(id => P.form.procs.includes(id));
 function canNext() { const f = P.form; return P.step === 0 ? f.procs.length > 0 : P.step === 3 ? !!(f.name.trim() && f.contact.trim() && f.consent && !P.busy) : true; }
@@ -335,18 +408,21 @@ function pIntake() {
   const bar = `<div class="steps" aria-label="${tx('進行状況', 'Progress')}">${[0, 1, 2, 3].map(i => `<i class="${i <= s ? 'on' : ''}"></i>`).join('')}</div>`;
   const back = `<button class="btn ghost" data-act="back">${tx('戻る', 'Back')}</button>`;
   const opt = `<span class="badge" style="margin-left:6px">${tx('任意', 'Optional')}</span>`;
-  if (s === 0) return `<div class="stack">
-    <section class="hero">${`<span class="star">${star(110)}</span>`}
-      <span class="pill">${tx('仲介手数料 0円・病院直営', 'Agent fee ¥0 · Run directly by the clinic')}</span>
-      <h1>${tx('来韓前に、<br>費用の目安がわかる。', 'Know your estimated cost<br>before you travel to Korea.')}</h1>
-      <p>${tx('気になる施術を選ぶだけ。約3分で、費用と滞在日数の目安を確認できます。', 'Just pick your treatments. In about 3 minutes, see an estimate of cost and length of stay.')}</p></section>
-    <div class="stack" style="gap:10px"><h2 class="disp" style="font-size:18px">${tx('気になる施術を選んでください', 'Which treatments interest you?')}</h2>
-      <div class="muted small">${tx('目的から選ぶ', 'Pick by goal')}</div>
-      <div class="chips">${GOALS.map(g => `<button class="chip" data-act="goal" data-v="${g.id}" aria-pressed="${goalOn(g)}">${tx(g.ja, g.en)}</button>`).join('')}</div>
-      <div class="muted small">${tx('施術から選ぶ（複数OK）', 'Or choose treatments (several OK)')}</div>
-      <div class="chips">${cfg.procs.map(p => `<button class="chip" data-act="proc" data-v="${p.id}" aria-pressed="${f.procs.includes(p.id)}">${esc(pn(p))}</button>`).join('')}</div></div>
+  if (s === 0) return `<div class="lp">
+    <section class="lp-hero"><span class="pill2">${tx('仲介手数料 0円・病院直営', 'Agent fee ¥0 · Run directly by the clinic')}</span>
+      <h1>${tx('<small>希望の施術</small>から、<br>費用の目安をチェック', 'Pick your <small>treatment</small>.<br>See your estimated cost.')}</h1>
+      <p>${tx('約3分で費用の目安と<br>滞在日数を確認できます。', 'In about 3 minutes, see a cost estimate and length of stay.')}</p>
+      <img class="photo" src="/hero.jpg" alt="" onload="this.parentNode.classList.add('hp')" onerror="this.remove()">
+      <span class="art" aria-hidden="true"><svg viewBox="0 0 160 190" width="136" height="162"><circle cx="86" cy="104" r="70" fill="var(--accent)" opacity=".13"/><path d="M14 190c2-34 26-50 52-54l14-4 14 4c26 4 50 20 52 54z" fill="var(--accent)"/><path d="M66 124h28v22c0 8-6 14-14 14s-14-6-14-14z" fill="#F1CDBB"/><ellipse cx="80" cy="86" rx="30" ry="37" fill="#F6D9C9"/><path d="M46 92c-8-44 14-66 40-66 30 0 46 24 34 66-2-24-12-40-30-42-14 8-30 14-44 42z" fill="#2B2342"/><path d="M46 90c-4 26 0 46 8 56-12-4-18-26-8-56zM120 90c4 26 0 46-8 56 12-4 18-26 8-56z" fill="#2B2342"/><path d="M68 100q12 8 24 0" stroke="#C97B84" stroke-width="2.600" fill="none" stroke-linecap="round"/><circle cx="52" cy="104" r="2.800" fill="#fff"/><circle cx="108" cy="104" r="2.800" fill="#fff"/></svg></span></section>
+    <section class="lp-card"><h2 class="lp-h"><span class="n">1</span><span>${tx('お悩みを選ぶ', 'What look do you want?')}<small>${tx('気になるお悩みを選んでください。', 'Pick what interests you.')}</small></span></h2>
+      <div class="goals">${GOALS.map(g => `<button class="goal" data-act="goal" data-v="${g.id}" aria-pressed="${goalOn(g)}"><svg viewBox="0 0 24 24" aria-hidden="true">${IC[g.id]}</svg><span>${tx(g.ja, g.en)}</span></button>`).join('')}</div></section>
+    <section class="lp-card"><h2 class="lp-h"><span class="n">2</span><span>${tx('気になる施術を選ぶ', 'Choose treatments')}<small>${tx('複数選択できます。', 'You can pick several.')}</small></span></h2>
+      <div class="plist">${cfg.procs.map(p => `<button class="proc-row" data-act="proc" data-v="${p.id}" aria-pressed="${f.procs.includes(p.id)}"><span class="box" aria-hidden="true">✓</span><span class="lbl">${esc(pn(p))}</span><span class="chev" aria-hidden="true">›</span></button>`).join('')}</div></section>
     <button class="btn block cta" id="primary" data-act="next" ${canNext() ? '' : 'disabled'}>${f.procs.length ? tx('費用の目安を見る →', 'See my estimate →') : tx('施術を選んでください', 'Choose a treatment to continue')}</button>
-    <ul class="trust"><li>${tx('通常24時間以内に病院スタッフがお返事', 'Clinic staff usually reply within 24 hours')}</li><li>${tx('写真・相談内容を見られるのは担当スタッフのみ', 'Only our assigned staff can see your photos and messages')}</li><li>${tx('相談だけでもOK。来院の義務はありません', 'Consultation only is fine. No obligation to visit')}</li></ul>
+    <div class="tgrid">
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('通常24時間以内に<br>スタッフが返信', 'Staff usually reply<br>within 24 hours')}</span></div>
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('写真・相談内容は<br>担当スタッフのみ確認', 'Photos & messages seen<br>only by assigned staff')}</span></div>
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('相談だけでも<br>OK', 'Consultation only<br>is fine')}</span></div></div>
     ${P.stats >= 50 ? `<div class="muted small" style="text-align:center">${tx(`これまでに${P.stats}件のご相談をいただいています`, `${P.stats} consultations received so far`)}</div>` : ''}
     <div class="muted tiny" style="text-align:center;line-height:1.6">${tx('オンライン相談は診断・治療ではなく、情報提供です。最終判断は韓国での対面診察で行います。', 'Online consultation is information only, not diagnosis or treatment. Final decisions are made at an in-person exam in Korea.')}</div></div>`;
   if (s === 1) return `${bar}<div class="stack"><h2 class="disp">${tx('写真とお悩み', 'Photos and concerns')}${opt}</h2>
@@ -508,6 +584,7 @@ function sHeader() {
     <div class="sub">별성형외과<br>상담 관리${ST.authed ? ' · <a href="#" data-act="logout" style="color:inherit">로그아웃</a>' : ''}</div></header>`;
 }
 async function renderStaff() {
+  document.body.classList.remove('pv');
   if (!ST.authed) { $('#app').innerHTML = `<div class="wrap">${sHeader()}<main><form class="card stack" id="loginf" style="max-width:380px;margin:40px auto"><h2 class="disp">직원 로그인</h2><label class="f">비밀번호<input type="password" id="pw" autocomplete="current-password" style="width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)"></label><button class="btn" type="submit">로그인</button><div class="small muted" id="lerr"></div></form></main></div>`; return; }
   const body = ST.tab === 'inbox' ? sInbox() : ST.tab === 'stats' ? sStats() : sPrices();
   $('#app').innerHTML = `<div class="wrap staff">${sHeader()}<main>${body}</main></div>`;
