@@ -540,6 +540,25 @@ function pIntake() {
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('通常24時間以内に<br>スタッフが返信', 'Staff usually reply<br>within 24 hours')}</span></div>
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('写真・相談内容は<br>担当スタッフのみ確認', 'Photos & messages seen<br>only by assigned staff')}</span></div>
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('相談だけでも<br>OK', 'Consultation only<br>is fine')}</span></div></div>
+    <section class="lp-card stack" style="margin-top:18px;border:1.5px solid #E8C4D8;background:linear-gradient(145deg,#fff,#FFF7FC)">
+      <div class="galaxy-feature-head"><div><small>YOUR KOREA STAY</small><h2>${tx('韓国滞在ガイド', 'Your Korea travel guide')}</h2></div></div>
+      <p class="muted small">${tx('新論峴駅周辺のホテル・観光情報を、相談前でもご覧いただけます。', 'Explore hotels near Sinnonhyeon Station and travel information even before requesting a consultation.')}</p>
+      <div class="card stack" style="background:#fff">
+        <b>${tx('新論峴駅近くの宿泊施設', 'Hotels near Sinnonhyeon Station')}</b>
+        <div class="small">Ocloud Hotel Gangnam · Dormy Inn Seoul Gangnam · HOTEL AT GANGNAM</div>
+        <a class="btn ghost block" style="text-align:center;text-decoration:none" href="https://www.tripadvisor.com/HotelsNear-g294197-d9579769-Sinnonhyeon-Seoul.html" target="_blank" rel="noopener noreferrer">${tx('周辺ホテルを見る ↗', 'Explore nearby hotels ↗')}</a>
+      </div>
+      <div class="row" style="gap:8px">
+        <a class="btn ghost" style="flex:1;text-align:center;text-decoration:none;padding:11px 8px" href="https://www.tripadvisor.com/" target="_blank" rel="noopener noreferrer">Tripadvisor ↗</a>
+        <a class="btn ghost" style="flex:1;text-align:center;text-decoration:none;padding:11px 8px" href="https://english.visitkorea.or.kr/" target="_blank" rel="noopener noreferrer">VISITKOREA ↗</a>
+      </div>
+      <div class="notice legal">${tx('術後の観光・移動・飛行機の利用は、必ず担当医に確認してください。', 'After surgery, confirm sightseeing, transport and flying plans with your surgeon.')}</div>
+    </section>
+    <section class="lp-card stack" style="margin-top:10px">
+      <div class="galaxy-feature-head"><div><small>AFTERCARE SUPPORT</small><h2>${tx('手術後のケア', 'Post-surgery aftercare')}</h2></div></div>
+      <p class="small">${tx('休息・傷口の清潔・薬の服用・再診などの一般的な注意点を確認できます。相談申込後は写真や症状をスタッフに送信できます。', 'Review general guidance on rest, wound care, medicines and follow-up. After submitting a consultation, you can send photos and symptoms to staff.')}</p>
+      <div class="notice">${tx('強い痛み、止まらない出血、呼吸困難などがある場合は、返信を待たずに直ちに医療機関に相談してください。', 'Seek urgent medical care for severe pain, uncontrolled bleeding or breathing difficulty; do not wait for a chat response.')}</div>
+    </section>
     ${P.stats >= 50 ? `<div class="muted small" style="text-align:center">${tx(`これまでに${P.stats}件のご相談をいただいています`, `${P.stats} consultations received so far`)}</div>` : ''}
     <div class="muted tiny" style="text-align:center;line-height:1.6">${tx('オンライン相談は診断・治療ではなく、情報提供です。最終判断は韓国での対面診察で行います。', 'Online consultation is information only, not diagnosis or treatment. Final decisions are made at an in-person exam in Korea.')}</div></div>`;
   if (s === 1) return `${bar}<div class="stack"><h2 class="disp">${tx('写真とお悩み', 'Photos and concerns')}${opt}</h2>
