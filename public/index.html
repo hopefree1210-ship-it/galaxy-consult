@@ -544,6 +544,13 @@ body.pv .galaxy-travel-app-grid a:nth-child(5) .galaxy-app-brand{background:#AD4
 body.pv .galaxy-travel-app-grid a:nth-child(6) .galaxy-app-brand{background:#24795A}
 body.pv .galaxy-travel-app-grid a:focus-visible{outline:3px solid #8B3D85}
 @media(max-width:390px){body.pv .galaxy-travel-app-grid a{min-height:130px;padding:11px 4px;gap:7px}body.pv .galaxy-travel-app-grid .galaxy-app-brand{font-size:11px;padding:7px 9px}body.pv .galaxy-travel-app-grid b{font-size:12px}}
+
+/* reels play inside the page */
+body.pv .galaxy-reel-pair{grid-template-columns:1fr}
+body.pv .galaxy-reel-box{display:flex;flex-direction:column;gap:6px}
+body.pv .galaxy-reel-box .galaxy-reel-link{flex-direction:row;align-items:center;width:100%;border:1px solid #EBCADB;text-align:left;cursor:pointer;font:inherit}
+body.pv .galaxy-reel-ext{font-size:12px;color:#A43C68;text-decoration:none;align-self:flex-end}
+body.pv .galaxy-reel-frame{display:block;width:100%;max-width:420px;height:620px;margin:0 auto;border:0;border-radius:16px;background:#fff}
 </style>
 </head>
 <body>
@@ -769,8 +776,8 @@ function pIntake() {
       <div class="galaxy-feature-head"><div><small>BYEOL SOCIAL</small><h2>${tx('ビョル美容外科の公式SNS', 'Byeol Plastic Surgery on social media')}</h2></div></div>
       <p class="small muted">${tx('病院の動画や最新情報をご覧ください。', 'Watch clinic videos and get the latest updates.')}</p>
       <div class="galaxy-reel-pair">
-        <a class="galaxy-reel-link" href="https://www.instagram.com/dr._byul/reel/DfENiBYyPi6/" target="_blank" rel="noopener noreferrer"><span class="galaxy-reel-play">▶</span><span><b>${tx('おすすめリール 1', 'Featured Reel 1')}</b><small>@dr._byul · Instagram</small></span><span aria-hidden="true">↗</span></a>
-        <a class="galaxy-reel-link" href="https://www.instagram.com/byulstargrambb/reels/" target="_blank" rel="noopener noreferrer"><span class="galaxy-reel-play">▶</span><span><b>${tx('公式リールを見る', 'Official Reels')}</b><small>@byulstargrambb · Instagram</small></span><span aria-hidden="true">↗</span></a>
+        <div class="galaxy-reel-box" data-reel="DfENiBYyPi6"><button type="button" class="galaxy-reel-link" data-reelplay><span class="galaxy-reel-play">▶</span><span><b>${tx('おすすめリール 1', 'Featured Reel 1')}</b><small>${tx('タップしてここで再生', 'Tap to play here')} · @dr._byul</small></span><span aria-hidden="true">▶</span></button><a class="galaxy-reel-ext" href="https://www.instagram.com/dr._byul/reel/DfENiBYyPi6/" target="_blank" rel="noopener noreferrer">${tx('Instagramで開く', 'Open on Instagram')} ↗</a></div>
+        <div class="galaxy-reel-box" data-reel="DfBUpsgh2w-"><button type="button" class="galaxy-reel-link" data-reelplay><span class="galaxy-reel-play">▶</span><span><b>${tx('おすすめリール 2', 'Featured Reel 2')}</b><small>${tx('タップしてここで再生', 'Tap to play here')} · @dr._byul</small></span><span aria-hidden="true">▶</span></button><a class="galaxy-reel-ext" href="https://www.instagram.com/dr._byul/reel/DfBUpsgh2w-/" target="_blank" rel="noopener noreferrer">${tx('Instagramで開く', 'Open on Instagram')} ↗</a></div>
       </div>
 
       <p class="small" style="line-height:1.8"><b>✨ BYUL PLASTIC SURGERY ✨</b><br>${tx('ビョル美容外科の公式YouTubeチャンネルです。チャンネル登録でさまざまな情報をご覧ください。', 'Welcome to the official Byeol Plastic Surgery YouTube channel. Subscribe for updates and helpful information.')}</p>
@@ -1251,6 +1258,17 @@ async function boot() {
 }
 boot();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+<script>
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-reelplay]'); if (!btn) return;
+  const box = btn.closest('[data-reel]'); if (!box || box.querySelector('iframe')) return;
+  const f = document.createElement('iframe');
+  f.className = 'galaxy-reel-frame'; f.loading = 'lazy'; f.allow = 'autoplay; encrypted-media; fullscreen'; f.allowFullscreen = true;
+  f.title = 'Instagram reel'; f.referrerPolicy = 'strict-origin-when-cross-origin';
+  f.src = 'https://www.instagram.com/reel/' + encodeURIComponent(box.dataset.reel) + '/embed/';
+  btn.replaceWith(f);
+});
 </script>
 </body>
 </html>
