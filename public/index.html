@@ -362,6 +362,8 @@ body.pv .galaxy-travel-app-grid{display:grid;grid-template-columns:repeat(2,minm
 body.pv .galaxy-social-links{display:flex;gap:9px;flex-wrap:wrap}body.pv .galaxy-social-links a{flex:1;min-width:120px;text-align:center;text-decoration:none;color:#A43C68;border:1px solid #E9C8D8;background:#FFF8FC;padding:12px 8px;border-radius:13px;font-weight:750;font-size:13px}body.pv .galaxy-reel-link{display:flex;align-items:center;gap:12px;padding:15px;border-radius:17px;text-decoration:none;color:#42243A;background:linear-gradient(125deg,#FFF0F7,#F3ECFF);border:1px solid #EBCADB}body.pv .galaxy-reel-link span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:5px}body.pv .galaxy-reel-link b{font-size:14px}body.pv .galaxy-reel-link small{font-size:11px;color:#93627C}body.pv .galaxy-reel-play{display:grid;place-items:center;flex:none;width:46px;height:46px;border-radius:50%;background:#AD4C77;color:white;font-size:17px}body.pv .galaxy-recovery-stay h2{line-height:1.4}
 
 body.pv .galaxy-clinic-contact{display:flex;flex-direction:column;gap:8px;padding:12px 14px;background:#FFF8FB;border:1px solid #F0DBE4;border-radius:13px;font-size:12px;line-height:1.5}body.pv .galaxy-clinic-contact a{color:#A13E69;text-decoration:none;font-weight:700}
+
+body.pv .galaxy-reel-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}body.pv .galaxy-reel-pair .galaxy-reel-link{min-width:0;flex-direction:column;align-items:flex-start;gap:8px}body.pv .galaxy-reel-pair .galaxy-reel-link span:nth-child(2){min-width:0}body.pv .galaxy-review-card{border:1px solid #EED6E1;background:#FFF9FC;border-radius:13px;padding:12px;font-size:13px}body.pv .galaxy-review-card span{color:#B74D79}body.pv .galaxy-review-card p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}body.pv .galaxy-reviews input,body.pv .galaxy-reviews select,body.pv .galaxy-reviews textarea{width:100%}
 </style>
 </head>
 <body>
@@ -525,6 +527,7 @@ function renderPatient() {
   document.documentElement.lang = P.lang; document.body.classList.add('pv');
   const body = !P.caseId ? pIntake() : P.c ? ({ result: pResult, chat: pChat, book: pBook, after: pAfter, travel: pTravel }[P.tab])() : `<p class="muted">${tx('読み込み中…', 'Loading…')}</p>`;
   $('#app').innerHTML = `<div class="wrap">${pHeader()}<main>${body}</main>${P.caseId && P.c ? pTabs() : ''}</div>`;
+  if (!P.caseId && P.step === 0) loadGalaxyReviews();
   if (P.tab === 'chat' && P.caseId) { paintMsgs(); }
 }
 
@@ -575,10 +578,26 @@ function pIntake() {
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('通常24時間以内に<br>スタッフが返信', 'Staff usually reply<br>within 24 hours')}</span></div>
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('写真・相談内容は<br>担当スタッフのみ確認', 'Photos & messages seen<br>only by assigned staff')}</span></div>
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('相談だけでも<br>OK', 'Consultation only<br>is fine')}</span></div></div>
+    <section class="lp-card stack galaxy-reviews" style="margin-top:14px">
+      <div class="galaxy-feature-head"><div><small>PATIENT VOICES</small><h2>${tx('ご感想をお聞かせください', 'Share your experience')}</h2></div></div>
+      <p class="small muted">${tx('相談や来院のご感想をお寄せください。内容を確認してから公開します。', 'Leave a review of your consultation or visit. Reviews are checked before publication.')}</p>
+      <form id="galaxy-review-form" class="stack" style="gap:9px">
+        <label class="f">${tx('ニックネーム', 'Nickname')}<input name="nickname" maxlength="40" minlength="2" required autocomplete="nickname" placeholder="${tx('ニックネーム', 'Nickname')}"></label>
+        <label class="f">${tx('満足度', 'Rating')}<select name="rating" required><option value="5">★★★★★ (5)</option><option value="4">★★★★☆ (4)</option><option value="3">★★★☆☆ (3)</option><option value="2">★★☆☆☆ (2)</option><option value="1">★☆☆☆☆ (1)</option></select></label>
+        <label class="f">${tx('口コミ内容', 'Your review')}<textarea name="body" minlength="10" maxlength="1000" required placeholder="${tx('ご相談・ご来院の体験をお書きください。', 'Tell us about your experience.')}" rows="3"></textarea></label>
+        <button type="submit" class="btn block">${tx('口コミを送信', 'Submit review')}</button>
+        <p id="galaxy-review-feedback" class="small" role="status" aria-live="polite"></p>
+      </form>
+      <div id="galaxy-approved-reviews" class="stack" aria-live="polite"></div>
+    </section>
     <section class="lp-card stack galaxy-social" style="margin-top:16px">
       <div class="galaxy-feature-head"><div><small>BYEOL SOCIAL</small><h2>${tx('ビョル美容外科の公式SNS', 'Byeol Plastic Surgery on social media')}</h2></div></div>
       <p class="small muted">${tx('病院の動画や最新情報をご覧ください。', 'Watch clinic videos and get the latest updates.')}</p>
-      <a class="galaxy-reel-link" href="https://www.instagram.com/dr._byul/reel/DfENiBYyPi6/" target="_blank" rel="noopener noreferrer"><span class="galaxy-reel-play">▶</span><span><b>${tx('注目のInstagram動画を見る', 'Watch our featured Instagram Reel')}</b><small>${tx('タップしてInstagramで再生', 'Tap to watch on Instagram')}</small></span><span aria-hidden="true">↗</span></a>
+      <div class="galaxy-reel-pair">
+        <a class="galaxy-reel-link" href="https://www.instagram.com/dr._byul/reel/DfENiBYyPi6/" target="_blank" rel="noopener noreferrer"><span class="galaxy-reel-play">▶</span><span><b>${tx('おすすめリール 1', 'Featured Reel 1')}</b><small>@dr._byul · Instagram</small></span><span aria-hidden="true">↗</span></a>
+        <a class="galaxy-reel-link" href="https://www.instagram.com/byulstargrambb/reels/" target="_blank" rel="noopener noreferrer"><span class="galaxy-reel-play">▶</span><span><b>${tx('公式リールを見る', 'Official Reels')}</b><small>@byulstargrambb · Instagram</small></span><span aria-hidden="true">↗</span></a>
+      </div>
+
       <p class="small" style="line-height:1.8"><b>✨ BYUL PLASTIC SURGERY ✨</b><br>${tx('ビョル美容外科の公式YouTubeチャンネルです。チャンネル登録でさまざまな情報をご覧ください。', 'Welcome to the official Byeol Plastic Surgery YouTube channel. Subscribe for updates and helpful information.')}</p>
       <div class="galaxy-clinic-contact"><span>💌 KakaoTalk: <b>@별성형외과</b></span><a href="tel:0218338898">📞 02-1833-8898</a><span>🏩 ${tx('ソウル特別市 瑞草区 沙平大路56キル 6', '6, Sapyeong-daero 56-gil, Seocho-gu, Seoul')}</span></div>
       <div class="galaxy-social-links">
@@ -933,6 +952,25 @@ document.addEventListener('submit', async e => {
   if (e.target.id !== 'loginf') return; e.preventDefault();
   try { await store.login($('#pw').value); ST.authed = true; boot(); } catch { $('#lerr').textContent = '비밀번호가 맞지 않습니다.'; }
 });
+
+async function loadGalaxyReviews() {
+  const host = document.querySelector('#galaxy-approved-reviews'); if (!host) return;
+  try { const items = await api('/reviews'); if (!host.isConnected) return;
+    host.innerHTML = items.map(r => '<div class="galaxy-review-card"><b>'+esc(r.nickname)+'</b> <span aria-label="'+Number(r.rating)+' stars">'+ '★'.repeat(Math.max(0,Math.min(5,Number(r.rating)))) +'</span><p>'+esc(r.body)+'</p></div>').join('');
+  } catch { /* reviews are optional */ }
+}
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'galaxy-review-form') return;
+  e.preventDefault();
+  const form=e.target, feedback=form.querySelector('#galaxy-review-feedback'), btn=form.querySelector('button[type="submit"]');
+  if(btn.disabled)return; btn.disabled=true;
+  const data=new FormData(form);
+  try { await api('/reviews',{method:'POST',body:{nickname:data.get('nickname'),rating:Number(data.get('rating')),body:data.get('body')}});
+    form.reset(); feedback.textContent=tx('ありがとうございます。内容を確認後、公開されます。','Thank you! Your review is pending approval.');
+  } catch { feedback.textContent=tx('送信できませんでした。しばらくしてから再度お試しください。','Could not submit. Please try again later.'); }
+  finally {btn.disabled=false;}
+});
+
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   if (b.tagName === 'A') e.preventDefault();
