@@ -2,7 +2,7 @@ name: Tests
 on:
   pull_request:
   push:
-    branches: [feature/international-free-consultation]
+    branches: [main, feature/international-free-consultation]
 jobs:
   integration:
     runs-on: ubuntu-latest
@@ -14,3 +14,15 @@ jobs:
           cache: npm
       - run: npm install
       - run: npm test
+      - name: Check browser script syntax
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import vm from 'node:vm';
+          const html = fs.readFileSync('public/index.html', 'utf8');
+          const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
+          for (const [i, match] of scripts.entries()) new vm.Script(match[1], { filename: `inline-${i}.js` });
+          if (!html.includes('LINE ID またはメールアドレス') || !html.includes('function pBook()')) throw Error('Existing intake or booking missing');
+          if (html.includes('gx-free-form')) throw Error('Duplicate intake form found');
+          console.log(`Checked ${scripts.length} inline scripts and intake/booking invariants`);
+          NODE
