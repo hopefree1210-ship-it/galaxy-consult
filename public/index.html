@@ -542,11 +542,11 @@ function pIntake() {
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('相談だけでも<br>OK', 'Consultation only<br>is fine')}</span></div></div>
     <section class="lp-card stack" style="margin-top:18px;border:1.5px solid #E8C4D8;background:linear-gradient(145deg,#fff,#FFF7FC)">
       <div class="galaxy-feature-head"><div><small>YOUR KOREA STAY</small><h2>${tx('韓国滞在ガイド', 'Your Korea travel guide')}</h2></div></div>
-      <p class="muted small">${tx('新論峴駅周辺のホテル・観光情報を、相談前でもご覧いただけます。', 'Explore hotels near Sinnonhyeon Station and travel information even before requesting a consultation.')}</p>
+      <p class="muted small">${tx('江南駅周辺のホテル・観光情報を、相談前でもご覧いただけます。', 'Explore hotels near Gangnam Station and travel information even before requesting a consultation.')}</p>
       <div class="card stack" style="background:#fff">
-        <b>${tx('新論峴駅近くの宿泊施設', 'Hotels near Sinnonhyeon Station')}</b>
-        <div class="small">Ocloud Hotel Gangnam · Dormy Inn Seoul Gangnam · HOTEL AT GANGNAM</div>
-        <a class="btn ghost block" style="text-align:center;text-decoration:none" href="https://www.tripadvisor.com/HotelsNear-g294197-d9579769-Sinnonhyeon-Seoul.html" target="_blank" rel="noopener noreferrer">${tx('周辺ホテルを見る ↗', 'Explore nearby hotels ↗')}</a>
+        <b>${tx('江南駅近くの宿泊施設', 'Hotels near Gangnam Station')}</b>
+        <div class="small">${tx("江南駅周辺のホテル・ホステルを比較できます。", "Compare hotels and hostels around Gangnam Station.")}</div>
+        <a class="btn ghost block" style="text-align:center;text-decoration:none" href="https://www.tripadvisor.com/Search?q=hotels%20near%20Gangnam%20Station%20Seoul" target="_blank" rel="noopener noreferrer">${tx('周辺ホテルを見る ↗', 'Explore nearby hotels ↗')}</a>
       </div>
       <div class="row" style="gap:8px">
         <a class="btn ghost" style="flex:1;text-align:center;text-decoration:none;padding:11px 8px" href="https://www.tripadvisor.com/" target="_blank" rel="noopener noreferrer">Tripadvisor ↗</a>
@@ -700,14 +700,10 @@ function pTravel() {
     <h2 class="disp">${tx('韓国旅行ガイド', 'Explore Korea')}</h2>
     <p class="muted small">${tx('滞在中の観光・食事・移動に役立つ情報です。予約や口コミは外部サイトでご確認ください。', 'Explore attractions, restaurants and transport during your stay. Reviews and bookings open on external websites.')}</p>
     <section class="card stack" style="background:#fff9fc;border-color:#f0dbe5">
-      <h3>${tx('新論峴駅周辺の宿泊施設', 'Stay near Sinnonhyeon Station')}</h3>
-      <p class="small muted">${tx('クリニック通院に便利なエリアのホテル・リーズナブルな宿泊施設をご紹介します。料金や空室は各サイトでご確認ください。', 'Browse hotels and budget stays near the clinic area. Check current rates and availability on each website.')}</p>
-      <div class="stack" style="gap:8px">
-        <div><b>Ocloud Hotel Gangnam</b><div class="small muted">${tx('新論峴駅近く・個室ホテル。駅から約150m。', 'Private hotel rooms, around 150m from the station.')}</div><a href="https://www.booking.com/hotel/kr/ocloud.html" target="_blank" rel="noopener noreferrer">${tx('客室・口コミを見る ↗', 'Rooms and reviews ↗')}</a></div>
-        <div><b>Dormy Inn Seoul Gangnam</b><div class="small muted">${tx('駅から約500m。静かな休息を重視する方向け。', 'Around 500m from the station; a full-service hotel option.')}</div><a href="https://www.tripadvisor.com/HotelsNear-g294197-d9579769-Sinnonhyeon-Seoul.html" target="_blank" rel="noopener noreferrer">${tx('ホテルを比較する ↗', 'Compare nearby hotels ↗')}</a></div>
-        <div><b>HOTEL AT GANGNAM</b><div class="small muted">${tx('駅から徒歩約5分のカプセルホテル。共用設備があります。', 'Capsule hotel about a five-minute walk away, with shared facilities.')}</div><a href="https://hotelat.com/en" target="_blank" rel="noopener noreferrer">${tx('公式サイトを見る ↗', 'Official website ↗')}</a></div>
-      </div>
-      <a class="btn ghost block" style="text-align:center;text-decoration:none" href="https://www.tripadvisor.com/HotelsNear-g294197-d9579769-Sinnonhyeon-Seoul.html" target="_blank" rel="noopener noreferrer">${tx('新論峴駅周辺のホテルをもっと探す ↗', 'More hotels near Sinnonhyeon ↗')}</a>
+      <h3>${tx('江南駅周辺の宿泊施設', 'Stay near Gangnam Station')}</h3>
+      <p class="small muted">${tx('江南駅周辺の宿泊施設を検索できます。料金や空室は各サイトでご確認ください。', 'Search hotels and budget stays around Gangnam Station. Check current rates and availability on external sites.')}</p>
+      <p class="small">${tx('江南駅周辺のホテル・ホステルを外部サイトで比較できます。駅からの距離、個室、エレベーター、キャンセル条件を確認してください。', 'Compare hotels and hostels near Gangnam Station. Check distance, private rooms, elevators and cancellation policies.')}</p>
+      <a class="btn ghost block" style="text-align:center;text-decoration:none" href="https://www.tripadvisor.com/Search?q=hotels%20near%20Gangnam%20Station%20Seoul" target="_blank" rel="noopener noreferrer">${tx('江南駅周辺のホテルをもっと探す ↗', 'More hotels near Sinnonhyeon ↗')}</a>
       <div class="notice">${tx('手術後は、相部屋や共用シャワーより個室・専用バスルームが便利な場合があります。エレベーター、階段、騒音、キャンセル条件も確認し、移動の可否は担当医にご相談ください。', 'After surgery, a private room and bathroom may be more practical than a shared hostel. Check lifts, stairs, noise and cancellation rules, and ask your surgeon about travel restrictions.')}</div>
     </section>
     <div class="card stack">
