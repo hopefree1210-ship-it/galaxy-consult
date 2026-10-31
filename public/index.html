@@ -420,6 +420,11 @@ body.pv .galaxy-seoul-slideshow img:nth-child(3){animation-delay:12s}
 @media(prefers-reduced-motion:reduce){body.pv .galaxy-seoul-slideshow img{animation:none;opacity:0}body.pv .galaxy-seoul-slideshow img:first-child{opacity:1}}
 
 body.pv .galaxy-doctors-card{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:center;margin:0 0 15px;border:1px solid #EACADA;background:linear-gradient(120deg,#FFF1F8,#FFF);border-radius:19px;padding:13px;overflow:hidden}body.pv .galaxy-doctors-photo{display:block;width:100%;height:170px;object-fit:cover;object-position:center 25%;border-radius:13px}body.pv .galaxy-doctors-copy{min-width:0}body.pv .galaxy-doctors-copy small{font-size:10px;font-weight:800;letter-spacing:.12em;color:#B34779}body.pv .galaxy-doctors-copy h3{font-size:18px;line-height:1.4;margin:9px 0;color:#381F34}body.pv .galaxy-doctors-copy p{font-size:12px;line-height:1.7;color:#745366}@media(max-width:460px){body.pv .galaxy-doctors-card{grid-template-columns:minmax(0,1fr)}body.pv .galaxy-doctors-photo{height:auto;aspect-ratio:16/9;object-fit:cover}}
+
+/* Doctors immediately below the hero, without cropping faces. */
+body.pv .lp>.galaxy-doctors-card{margin:0 0 15px;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);padding:14px;gap:18px}
+body.pv .lp>.galaxy-doctors-card .galaxy-doctors-photo{height:auto;max-height:260px;aspect-ratio:16/9;object-fit:contain;object-position:center;background:#F4F0F3}
+@media(max-width:560px){body.pv .lp>.galaxy-doctors-card{grid-template-columns:minmax(0,1fr);gap:10px}body.pv .lp>.galaxy-doctors-card .galaxy-doctors-photo{width:100%;max-height:none;height:auto;aspect-ratio:auto;object-fit:contain}body.pv .lp>.galaxy-doctors-card .galaxy-doctors-copy h3{font-size:17px;margin:6px 0}}
 </style>
 </head>
 <body>
@@ -621,6 +626,10 @@ function pIntake() {
         <p class="galaxy-trust-foot">${tx('施術にはリスクがあります。安全性や適応は診察時に医師が個別に判断します。', 'All procedures involve risks. Your surgeon will assess suitability and safety during consultation.')}</p>
       </div>
     </section>
+      <section class="galaxy-doctors-card" aria-label="${tx('医療チームのご紹介', 'Meet our medical team')}">
+        <img class="galaxy-doctors-photo" src="/byul-doctors-team.jpg.png" alt="${tx('ビョル美容外科の医療チーム', 'Byeol Plastic Surgery medical team')}" loading="lazy" onerror="this.style.display='none'">
+        <div class="galaxy-doctors-copy"><small>MEET THE BYEOL TEAM</small><h3>${tx('ビョル美容外科の医療チーム', 'Meet the Byeol medical team')}</h3><p>${tx('20年の経験を活かした丁寧なカウンセリング。', '20 years of experience, with personalized consultations.')}</p></div>
+      </section>
     <div class="galaxy-hero-benefits"><span>♡ ${tx('施術を選ぶ', 'Choose treatment')}</span><span>◇ ${tx('費用の目安', 'Cost estimate')}</span><span>✧ ${tx('相談・術後ケア', 'Consultation & aftercare')}</span></div>
     <div class="galaxy-feature-head"><div><small>BEAUTY MENU</small><h2>${tx('人気の施術', 'Explore treatments')}</h2></div><span>${tx('気になる部位から選択', 'Choose an area')}</span></div>
     <div class="galaxy-photo-menu">${[['eyes','eyes'],['nose','nose'],['face','face'],['young','lift'],['skin','lips']].map(([id,photo])=>{const g=GOALS.find(x=>x.id===id);return `<button data-act="goal" data-v="${id}" aria-pressed="${goalOn(g)}"><img src="/galaxy-${photo}.jpg" alt="" loading="lazy"><span>${tx(g.ja.replace(/<br>/g,' '),g.en.replace(/<br>/g,' '))} ›</span></button>`}).join('')}</div>
@@ -686,10 +695,7 @@ function pIntake() {
         <img src="/seoul-street.jpg.jpg" alt="${tx('ソウルの街並み', 'Seoul street scene')}" loading="lazy">
         <img src="/namsan-tower.jpg.jpg" alt="${tx('南山タワーと韓屋', 'Namsan Tower and traditional Korean houses')}" loading="lazy">
       </div>
-      <section class="galaxy-doctors-card" aria-label="${tx('医療チームのご紹介', 'Meet our medical team')}">
-        <img class="galaxy-doctors-photo" src="/byul-doctors-team.jpg.png" alt="${tx('ビョル美容外科の医療チーム', 'Byeol Plastic Surgery medical team')}" loading="lazy" onerror="this.style.display='none'">
-        <div class="galaxy-doctors-copy"><small>MEET THE BYEOL TEAM</small><h3>${tx('ビョル美容外科の医療チーム', 'Meet the Byeol medical team')}</h3><p>${tx('20年の経験を活かした丁寧なカウンセリング。', '20 years of experience, with personalized consultations.')}</p></div>
-      </section>
+
       <div class="galaxy-clinic-visit">
           <img class="galaxy-clinic-exterior" src="/byul-clinic-exterior.webp" alt="${tx('ビョル美容外科の建物外観', 'Byeol Plastic Surgery building exterior')}" loading="lazy" onerror="this.style.display='none'">
       <div class="galaxy-clinic-visit-copy"><small>BYUL PLASTIC SURGERY</small><h3>${tx('ビョル美容外科へのアクセス', 'Visit Byeol Plastic Surgery')}</h3>
