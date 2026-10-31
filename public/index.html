@@ -696,7 +696,7 @@ function sInbox() {
   </div><div class="detail">${ST.sel && ST.c ? sDetail() : '<div class="card muted">왼쪽에서 상담을 선택하세요.</div>'}</div></div>`;
 }
 function sTriBan(c) { return c.triage ? `<div class="notice" style="background:var(--${TRIK[c.triage][1]}-bg);color:var(--${TRIK[c.triage][1]})"><b>술후 ${esc(c.dayN || '?')}일차 · ${TRIK[c.triage][0]}</b> — 환자 입력 증상 기준의 규칙 판정입니다(사진 판독 아님). 반드시 의료진이 사진을 확인하세요.</div>` : ''; }
-function sMeetStat(m) { return m ? `<div class="row"><span class="badge ${m.status === 'confirmed' ? 'good' : 'warn'}">${m.status === 'confirmed' ? '확정' : '환자 희망'}</span><b>${esc(m.at.replace('T', ' '))}</b>${m.link ? `<a href="${esc(m.link)}" target="_blank" rel="noopener" class="small">링크 열기</a>` : ''}</div>` : '<div class="muted small">환자의 희망 일시가 아직 없습니다.</div>'; }
+function sMeetStat(m) { return m ? `<div class="row"><span class="badge ${m.status === 'confirmed' ? 'good' : 'warn'}">${m.status === 'completed' ? '종료' : m.status === 'in_progress' ? '진행 중' : m.status === 'confirmed' ? '확정' : '환자 희망'}</span><b>${esc(m.at.replace('T', ' '))}</b>${m.link ? `<a href="${esc(m.link)}" target="_blank" rel="noopener" class="small">링크 열기</a>` : ''}</div>` : '<div class="muted small">환자의 희망 일시가 아직 없습니다.</div>'; }
 function sDetail() {
   const c = ST.c, e = c.est || {}, m = c.meeting;
   return `<div class="stack">
@@ -809,7 +809,7 @@ document.addEventListener('click', async e => {
   else if (a === 'quick') { const t = $('#pmsg'); t.value = (P.lang === 'en' ? QUICK_EN : QUICK_JA)[+v]; t.dispatchEvent(new Event('input', { bubbles: true })); t.focus(); }
   else if (a === 'day') { P.slotDay = v; renderPatient(); } else if (a === 'time') { P.slotTime = v; renderPatient(); }
   else if (a === 'reqslot') requestSlot();
-  else if (a === 'startConsult') { try { await api('/cases/' + P.caseId + '/consultation/start', { method: 'POST' }); P.tab = 'chat'; renderPatient(); } catch { toast('Not ready / 予約時間をご確認ください'); } }
+  else if (a === 'startConsult') { try { await api('/cases/' + P.caseId + '/consultation/start', { method: 'POST', secret: secret() }); P.tab = 'chat'; renderPatient(); } catch { toast('Not ready / 予約時間をご確認ください'); } }
   else if (a === 'rebook') { await store.requestSlot(null); }
   else if (a === 'sym') { P.sym = P.sym.includes(v) ? P.sym.filter(x => x !== v) : [...P.sym, v]; renderPatient(); }
   else if (a === 'asend') sendAfter();
@@ -891,8 +891,8 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').cat
 function init(){const form=document.getElementById('gx-free-form');if(!form)return;
 form.addEventListener('submit',async e=>{e.preventDefault();const btn=form.querySelector('button'),out=document.getElementById('gx-free-status'),d=new FormData(form);btn.disabled=true;out.textContent='送信中… / Sending…';
 try{const response=await fetch('/api/consultations/free',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:d.get('name'),country:d.get('country'),lang:d.get('lang'),channel:d.get('channel'),contact:d.get('contact'),concerns:d.get('concerns'),consent:d.get('consent')==='on'})});if(!response.ok)throw Error('send');const result=await response.json();
-try{localStorage.setItem('galaxy_case',JSON.stringify({id:result.id,secret:result.secret}));}catch{}
-out.textContent='受付完了 / Request received. Please keep this page for your consultation reference.';form.reset();
+try{localStorage.setItem('galaxy_case',JSON.stringify(result.id));localStorage.setItem('galaxy_secret',JSON.stringify(result.secret));}catch{}
+out.textContent='受付完了 / Request received. Opening Galaxy…';form.reset();setTimeout(()=>location.reload(),900);
 }catch{out.textContent='送信できませんでした。もう一度お試しください。 / Could not submit. Please retry.'}finally{btn.disabled=false}});
 }if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
