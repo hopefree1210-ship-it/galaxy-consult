@@ -151,7 +151,7 @@ app.post('/api/staff/cases/:id/messages', staffOnly, staffCase, (req, res) => {
   Object.assign(c, { lastAt: now, unreadPatient: true, status: c.status === 'new' ? 'replied' : c.status }); cases.save(c);
   nudge(c.ref); res.json({ ok: true });
 });
-const consultationWindow = c => c.meeting?.status === 'confirmed' && Date.now() >= Date.parse(c.meeting.at + ':00+09:00') - 10 * 60e3;
+const consultationWindow = c => ['confirmed','in_progress'].includes(c.meeting?.status) && Date.now() >= Date.parse(c.meeting.at + ':00+09:00') - 10 * 60e3;
 app.post('/api/cases/:id/consultation/start', patientAuth, (req, res) => {
   const c = req.c;
   if (!consultationWindow(c)) return res.status(409).json({ error: 'not_ready' });
