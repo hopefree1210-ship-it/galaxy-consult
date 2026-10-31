@@ -503,7 +503,7 @@ window.addEventListener('hashchange', () => boot());
 /* =====================================================================
    PATIENT APP (JP / EN)
 ===================================================================== */
-const initLang = () => { const q = new URLSearchParams(location.search).get('lang'); if (['en','ja','ko','zh'].includes(q)) return q; const s = lsGet('galaxy_lang', null); if (['en','ja','ko','zh'].includes(s)) return s; const n=(navigator.language||'').toLowerCase(); return n.startsWith('ko')?'ko':n.startsWith('zh')?'zh':n.startsWith('en')?'en':'ja'; };
+const initLang = () => { const q = new URLSearchParams(location.search).get('lang'); if (['en','ja','ko','zh'].includes(q)) return q; const s = lsGet('galaxy_lang', null); if (['en','ja','ko','zh'].includes(s)) return s; const n=(navigator.languages?.[0]||navigator.language||'').toLowerCase(); return n.startsWith('ja')?'ja':n.startsWith('zh')?'zh':n.startsWith('ko')?'ko':'en'; };
 const P = { lang: 'ja', step: 0, tab: 'result', form: { name: '', age: '', procs: [], concerns: '', budget: '', visit: '', history: '', contact: '', photos: [], consent: false },
   caseId: lsGet('galaxy_case', null), c: null, msgs: [], unsubs: [], slotDay: null, slotTime: null, sym: [], dayN: '', aPhoto: null, busy: false };
 P.lang = initLang(); P.stats = 0;
@@ -518,7 +518,7 @@ const opt = (list, cur) => `<option value="">${tx('選択してください', 'S
 
 function pHeader() {
   return `<header class="top light"><div class="brand">${star(20)}<span>Galaxy</span></div><div class="sub"><b>별성형외과</b>${tx('オンライン事前相談', 'Online pre-consultation')}</div>
-    <div class="lang" role="group" aria-label="Language"><button data-act="lang" data-v="ja" aria-pressed="${P.lang === 'ja'}">日本語</button><button data-act="lang" data-v="en" aria-pressed="${P.lang === 'en'}">English</button><button data-act="lang" data-v="ko" aria-pressed="${P.lang === 'ko'}">한국어</button><button data-act="lang" data-v="zh" aria-pressed="${P.lang === 'zh'}">中文</button></div></header>`;
+    <div class="lang" role="group" aria-label="Language"><button data-act="lang" data-v="ja" aria-pressed="${P.lang === 'ja'}">日本語</button><button data-act="lang" data-v="zh" aria-pressed="${P.lang === 'zh'}">中文</button><button data-act="lang" data-v="en" aria-pressed="${P.lang === 'en'}">English</button><button data-act="lang" data-v="ko" aria-pressed="${P.lang === 'ko'}">한국어</button></div></header>`;
 }
 function pTabs() {
   const unread = P.c?.unreadPatient;
