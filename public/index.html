@@ -356,6 +356,8 @@ body.pv .galaxy-hero-benefits{display:flex;align-items:center;justify-content:sp
 body.pv .galaxy-hero-benefits span{flex:1}
 @media(max-width:560px){body.pv .galaxy-unified-hero{min-height:340px}body.pv .galaxy-unified-copy{width:66%;padding:29px 14px 20px}body.pv .galaxy-unified-copy h1{font-size:clamp(19px,5.2vw,28px)}body.pv .galaxy-unified-hero:before{background:linear-gradient(90deg,rgba(255,247,251,.99) 0%,rgba(255,247,251,.88) 42%,rgba(255,247,251,.08) 100%)}body.pv .galaxy-hero-benefits{font-size:9px}}
 
+
+body.pv .galaxy-travel-app-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 14px}body.pv .galaxy-travel-app-grid a{display:flex;align-items:center;flex-direction:column;gap:5px;text-align:center;min-height:102px;justify-content:center;padding:12px 6px;background:#fff;border:1px solid #F0D8E3;border-radius:16px;color:#321E31;text-decoration:none;box-shadow:0 4px 12px #B83F6810}body.pv .galaxy-travel-app-grid a:focus-visible{outline:3px solid #B32666;outline-offset:2px}body.pv .galaxy-travel-app-grid b{font-size:12px}body.pv .galaxy-travel-app-grid small{font-size:11px;color:#A13E69}body.pv .galaxy-app-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:#FBE7F0;color:#A13E69;font-size:20px}body.pv .galaxy-travel-app-grid a:nth-child(2n) .galaxy-app-icon{background:#F0E8FF;color:#7450A4}
 </style>
 </head>
 <body>
@@ -572,6 +574,14 @@ function pIntake() {
     <section class="lp-card stack" style="margin-top:18px;border:1.5px solid #E8C4D8;background:linear-gradient(145deg,#fff,#FFF7FC)">
       <div class="galaxy-feature-head"><div><small>YOUR KOREA STAY</small><h2>${tx('韓国滞在ガイド', 'Your Korea travel guide')}</h2></div></div>
       <p class="muted small">${tx('江南駅周辺のホテル・観光情報を、相談前でもご覧いただけます。', 'Explore hotels near Gangnam Station and travel information even before requesting a consultation.')}</p>
+      <div class="galaxy-travel-app-grid" aria-label="${tx('旅行に便利なアプリ', 'Helpful travel apps')}">
+        <a href="https://map.naver.com/" target="_blank" rel="noopener noreferrer"><span class="galaxy-app-icon">⌖</span><b>${tx('病院への道順', 'Directions')}</b><small>NAVER Map</small></a>
+        <a href="https://papago.naver.com/" target="_blank" rel="noopener noreferrer"><span class="galaxy-app-icon">文</span><b>${tx('韓国語翻訳', 'Translate')}</b><small>Papago</small></a>
+        <a href="https://kride.kakaomobility.com/" target="_blank" rel="noopener noreferrer"><span class="galaxy-app-icon">🚕</span><b>${tx('タクシー', 'Taxi')}</b><small>k.ride</small></a>
+        <a href="https://www.booking.com/searchresults.html?ss=Gangnam+Station%2C+Seoul" target="_blank" rel="noopener noreferrer"><span class="galaxy-app-icon">⌂</span><b>${tx('江南駅のホテル', 'Gangnam hotels')}</b><small>Booking.com</small></a>
+        <a href="https://www.klook.com/" target="_blank" rel="noopener noreferrer"><span class="galaxy-app-icon">✧</span><b>${tx('観光・体験', 'Activities')}</b><small>Klook</small></a>
+        <a href="https://www.wowpass.io/" target="_blank" rel="noopener noreferrer"><span class="galaxy-app-icon">▣</span><b>${tx('決済・交通', 'Payment & transit')}</b><small>WOWPASS</small></a>
+      </div>
       <div class="card stack" style="background:#fff">
         <b>${tx('江南駅近くの宿泊施設', 'Hotels near Gangnam Station')}</b>
         <div class="small">${tx("江南駅周辺のホテル・ホステルを比較できます。", "Compare hotels and hostels around Gangnam Station.")}</div>
