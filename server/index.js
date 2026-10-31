@@ -118,7 +118,7 @@ const SLOT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 app.post('/api/cases/:id/meeting', patientAuth, (req, res) => {
   const c = req.c, now = Date.now(), at = req.body?.at;
   if (at === null) { c.meeting = null; cases.save(c); return res.json({ ok: true }); }
-  if (!SLOT.test(at || '')) return res.status(400).json({ error: 'invalid' });
+  if (!SLOT.test(at || '') || !Number.isFinite(Date.parse(at + ':00+09:00')) || Date.parse(at + ':00+09:00') < now) return res.status(400).json({ error: 'invalid' });
   c.meeting = { status: 'requested', at }; Object.assign(c, { lastAt: now, unreadStaff: true }); cases.save(c);
   sys(c.id, now, L(c, `ビデオ相談の希望：${at.replace('T', ' ')}（確定までお待ちください）`, `Video consultation requested for ${at.replace('T', ' ')} (please wait for confirmation).`));
   res.json({ ok: true });
@@ -151,9 +151,35 @@ app.post('/api/staff/cases/:id/messages', staffOnly, staffCase, (req, res) => {
   Object.assign(c, { lastAt: now, unreadPatient: true, status: c.status === 'new' ? 'replied' : c.status }); cases.save(c);
   nudge(c.ref); res.json({ ok: true });
 });
+const consultationWindow = c => c.meeting?.status === 'confirmed' && Date.now() >= Date.parse(c.meeting.at + ':00+09:00') - 10 * 60e3;
+app.post('/api/cases/:id/consultation/start', patientAuth, (req, res) => {
+  const c = req.c;
+  if (!consultationWindow(c)) return res.status(409).json({ error: 'not_ready' });
+  if (c.meeting.status !== 'in_progress') {
+    c.meeting.status = 'in_progress'; c.meeting.startedAt = Date.now(); c.lastAt = Date.now(); c.unreadStaff = true;
+    cases.save(c); sys(c.id, Date.now(), L(c, '相談が始まりました。チャットでお話しください。', 'Your consultation has started. Please use the chat.'));
+  }
+  res.json({ ok: true });
+});
+app.post('/api/staff/cases/:id/consultation/start', staffOnly, staffCase, (req, res) => {
+  const c = req.c;
+  if (!consultationWindow(c)) return res.status(409).json({ error: 'not_ready' });
+  if (c.meeting.status !== 'in_progress') {
+    c.meeting.status = 'in_progress'; c.meeting.startedAt = Date.now(); c.lastAt = Date.now(); c.unreadPatient = true;
+    cases.save(c); sys(c.id, Date.now(), L(c, '担当者が相談を開始しました。チャットにお進みください。', 'The team has started your consultation. Open the chat.'));
+  }
+  res.json({ ok: true });
+});
+app.post('/api/staff/cases/:id/consultation/end', staffOnly, staffCase, (req, res) => {
+  const c = req.c;
+  if (c.meeting?.status !== 'in_progress') return res.status(409).json({ error: 'not_in_progress' });
+  c.meeting.status = 'completed'; c.meeting.endedAt = Date.now(); c.lastAt = Date.now(); c.unreadPatient = true;
+  cases.save(c); sys(c.id, Date.now(), L(c, '本日の相談は終了しました。ありがとうございました。', 'This consultation has ended. Thank you.'));
+  res.json({ ok: true });
+});
 app.post('/api/staff/cases/:id/meeting', staffOnly, staffCase, (req, res) => {
   const c = req.c, now = Date.now(), at = clean(req.body?.at, 16), link = clean(req.body?.link, 500);
-  if (!SLOT.test(at) || (link && !/^https:\/\//.test(link))) return res.status(400).json({ error: 'invalid' });
+  if (!SLOT.test(at) || !Number.isFinite(Date.parse(at + ':00+09:00')) || Date.parse(at + ':00+09:00') < now || (link && !/^https:\/\//.test(link))) return res.status(400).json({ error: 'invalid' });
   c.meeting = { status: 'confirmed', at, link }; Object.assign(c, { status: 'booked', lastAt: now, unreadPatient: true }); cases.save(c);
   sys(c.id, now, L(c, `ビデオ相談が確定しました：${at.replace('T', ' ')}（日本時間）。「ビデオ予約」タブから参加できます。`, `Your video consultation is confirmed: ${at.replace('T', ' ')} (Japan/Korea time). Join from the "Video" tab.`));
   nudge(c.ref); res.json({ ok: true });
