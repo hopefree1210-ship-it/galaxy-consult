@@ -519,6 +519,16 @@ body.pv .galaxy-unified-copy{position:relative;box-sizing:border-box;width:57%;m
  body.pv .galaxy-hero-description{font-size:10px;line-height:1.7;margin-top:12px}
 }
 @media(max-width:375px){body.pv .galaxy-unified-hero{min-height:315px}body.pv .galaxy-unified-copy{width:64%;max-width:64%;padding-left:12px}body.pv .galaxy-unified-copy h1{font-size:18px}}
+
+/* hero: model's full face visible on the right, text on the left (phones) */
+@media(max-width:560px){
+ body.pv .galaxy-unified-hero{min-height:380px;flex-direction:row;align-items:center;justify-content:flex-start}
+ body.pv .galaxy-unified-photo{width:68%;right:-8%;left:auto;height:100%;object-fit:cover;object-position:50% 0%;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 30%);mask-image:linear-gradient(90deg,transparent 0%,#000 30%)}
+ body.pv .galaxy-unified-hero:before{background:linear-gradient(90deg,#FFF5F9 0%,rgba(255,245,249,.96) 24%,rgba(255,245,249,.55) 40%,rgba(255,245,249,0) 58%)}
+ body.pv .galaxy-unified-copy{width:56%;max-width:56%;padding:26px 0 22px 15px}
+ body.pv .galaxy-unified-copy h1{font-size:clamp(18px,5.2vw,23px);line-height:1.5}
+ body.pv .galaxy-hero-description{max-width:92%}
+}
 </style>
 </head>
 <body>
