@@ -333,6 +333,14 @@ body.pv .goal[aria-pressed=true] svg{stroke:#fff!important}
 body.pv .goal:focus-visible{outline:3px solid #A51D75;outline-offset:3px}
 @media(max-width:390px){body.pv .goals{gap:5px}body.pv .goal{font-size:10px;padding-inline:2px;min-height:99px}body.pv .goal svg{width:26px;height:26px}}
 
+
+/* Brand promise above the existing hero; visible before any consultation step */
+body.pv .galaxy-trust-intro{padding:23px 18px 22px;margin:4px 0 15px;border:1px solid #F0C8D8;border-radius:22px;background:linear-gradient(120deg,#FFF7FB 0%,#FFFFFF 58%,#F7F0FF 100%);box-shadow:0 10px 24px #A83E6514;text-align:center}
+body.pv .galaxy-trust-eyebrow{font-size:10px;letter-spacing:.16em;font-weight:800;color:#B32666;margin-bottom:11px}
+body.pv .galaxy-trust-intro h1{font-size:clamp(20px,4.6vw,30px);line-height:1.48;letter-spacing:-.035em;color:#27192C;font-weight:850;margin:0}
+body.pv .galaxy-trust-brand{font-size:clamp(14px,3.5vw,18px);font-weight:800;color:#B32666;margin:12px 0 0}
+body.pv .galaxy-trust-foot{font-size:10px;line-height:1.55;color:#766A78;margin:12px 0 0}
+
 </style>
 </head>
 <body>
@@ -522,6 +530,12 @@ function pIntake() {
   const back = `<button class="btn ghost" data-act="back">${tx('戻る', 'Back')}</button>`;
   const opt = `<span class="badge" style="margin-left:6px">${tx('任意', 'Optional')}</span>`;
   if (s === 0) return `<div class="lp">
+    <section class="galaxy-trust-intro" aria-label="${tx('クリニックのご案内', 'Clinic introduction')}">
+      <div class="galaxy-trust-eyebrow">BYEOL PLASTIC SURGERY · GALAXY</div>
+      <h1>${tx('安心できる美容医療。<br>予約からアフターケアまで、ひとつに。', 'Safe cosmetic care.<br>Booking and aftercare, all in one.')}</h1>
+      <p class="galaxy-trust-brand">${tx('信頼できる韓国のビョル美容外科で。', 'With trusted Byeol Plastic Surgery in Korea.')}</p>
+      <p class="galaxy-trust-foot">${tx('施術にはリスクがあります。安全性や適応は診察時に医師が個別に判断します。', 'All procedures involve risks. Your surgeon will assess suitability and safety during consultation.')}</p>
+    </section>
     <section class="lp-hero"><span class="pill2">${tx('韓国美容医療・日本語で相談', 'Korean beauty care · Japanese support')}</span>
       <h1>${tx('韓国の美容医療を<br><small>もっと安心・おトクに</small>', 'Explore Korean beauty care<br><small>with confidence</small>')}</h1>
       <p>${tx('気になる施術を選んで、<br>費用の目安と滞在日数をチェック。', 'Choose treatments to see estimated costs and length of stay.')}</p>
