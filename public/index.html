@@ -502,6 +502,23 @@ body.pv .galaxy-unified-copy .galaxy-trust-eyebrow{color:#A94C74;letter-spacing:
  body.pv header.top.light .lang button{font-size:15px;min-width:23px;min-height:28px;padding:4px 2px}
 }
 @media(max-width:375px){body.pv header.top.light .brand span{font-size:18px}body.pv header.top.light .sub{font-size:7px;padding-left:5px}body.pv header.top.light .sub b{font-size:8px}body.pv header.top.light .lang button{font-size:14px;min-width:21px;padding:4px 1px}}
+
+/* Balanced photo/text hero based on approved UX mockup; image remains a separate asset. */
+body.pv .galaxy-unified-hero{position:relative;isolation:isolate;display:flex;align-items:center;min-height:370px;overflow:hidden;background:#FFF1F7;border-radius:20px}
+body.pv .galaxy-unified-photo{position:absolute;top:0;right:0;bottom:0;left:auto;width:76%;height:100%;object-fit:cover;object-position:53% 36%;z-index:-2}
+body.pv .galaxy-unified-hero:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#FFF5F9 0%,rgba(255,245,249,.98) 29%,rgba(255,245,249,.82) 44%,rgba(255,245,249,.12) 73%,rgba(255,245,249,0) 100%)}
+body.pv .galaxy-unified-copy{position:relative;box-sizing:border-box;width:57%;max-width:470px;padding:30px 24px}
+@media(max-width:560px){
+ body.pv .galaxy-unified-hero{display:flex;align-items:center;min-height:330px;padding:0;margin:0 0 10px;border-radius:17px;width:100%;max-width:100%}
+ body.pv .galaxy-unified-photo{position:absolute;top:0;right:0;bottom:0;left:auto;width:76%;height:100%;object-fit:cover;object-position:54% 35%;z-index:-2}
+ body.pv .galaxy-unified-hero:before{background:linear-gradient(90deg,#FFF5F9 0%,rgba(255,245,249,.98) 27%,rgba(255,245,249,.83) 45%,rgba(255,245,249,.17) 77%,rgba(255,245,249,0) 100%)}
+ body.pv .galaxy-unified-copy{position:relative;width:61%;max-width:61%;padding:22px 0 22px 15px}
+ body.pv .galaxy-unified-copy h1{font-size:clamp(18px,5vw,24px);line-height:1.52;margin:17px 0 12px;word-break:keep-all;overflow-wrap:normal}
+ body.pv .galaxy-unified-copy .galaxy-trust-eyebrow{font-size:8px;letter-spacing:.16em;white-space:nowrap}
+ body.pv .galaxy-hero-pill{font-size:9px;line-height:1.35;padding:6px 8px;white-space:normal}
+ body.pv .galaxy-hero-description{font-size:10px;line-height:1.7;margin-top:12px}
+}
+@media(max-width:375px){body.pv .galaxy-unified-hero{min-height:315px}body.pv .galaxy-unified-copy{width:64%;max-width:64%;padding-left:12px}body.pv .galaxy-unified-copy h1{font-size:18px}}
 </style>
 </head>
 <body>
