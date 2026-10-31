@@ -343,6 +343,19 @@ body.pv .galaxy-trust-foot{font-size:10px;line-height:1.55;color:#766A78;margin:
 
 
 body.pv .lang{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px;max-width:220px}body.pv .lang button{font-size:10px;padding:7px 8px;white-space:nowrap}@media(max-width:390px){body.pv .lang{max-width:175px}body.pv .lang button{font-size:9px;padding:6px}}
+
+/* Integrated photo hero, replacing the disconnected introductory card */
+body.pv .galaxy-unified-hero{position:relative;isolation:isolate;overflow:hidden;min-height:340px;border-radius:20px;background:#FFF1F7;margin:5px 0 12px}
+body.pv .galaxy-unified-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:67% 35%;z-index:-2}
+body.pv .galaxy-unified-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,247,251,.98) 0%,rgba(255,247,251,.92) 36%,rgba(255,247,251,.35) 67%,rgba(255,247,251,.03) 100%);z-index:-1}
+body.pv .galaxy-unified-copy{width:60%;max-width:440px;padding:37px 22px 27px}
+body.pv .galaxy-unified-copy h1{font-family:Georgia,'Shippori Mincho',serif;font-size:clamp(22px,4.3vw,38px);line-height:1.35;letter-spacing:-.035em;color:#341F2D;margin:20px 0 15px;font-weight:700}
+body.pv .galaxy-unified-copy .galaxy-trust-brand{font-size:clamp(13px,2.5vw,20px);line-height:1.4}
+body.pv .galaxy-unified-copy .galaxy-trust-foot{margin-top:20px;border-top:1px solid #DDB7C7;padding-top:12px;max-width:370px}
+body.pv .galaxy-hero-benefits{display:flex;align-items:center;justify-content:space-around;gap:6px;padding:15px 8px;margin-bottom:17px;border:1px solid #EDC5D8;border-radius:20px;background:#FFF8FC;color:#9F3C68;font-size:11px;font-weight:750;text-align:center}
+body.pv .galaxy-hero-benefits span{flex:1}
+@media(max-width:560px){body.pv .galaxy-unified-hero{min-height:340px}body.pv .galaxy-unified-copy{width:66%;padding:29px 14px 20px}body.pv .galaxy-unified-copy h1{font-size:clamp(19px,5.2vw,28px)}body.pv .galaxy-unified-hero:before{background:linear-gradient(90deg,rgba(255,247,251,.99) 0%,rgba(255,247,251,.88) 42%,rgba(255,247,251,.08) 100%)}body.pv .galaxy-hero-benefits{font-size:9px}}
+
 </style>
 </head>
 <body>
@@ -524,7 +537,7 @@ const GOALS = [
   { id: 'young', ja: '若々しい<br>印象', en: 'Younger<br>look', procs: ['lift', 'botox'] },
 ];
 const goalOn = g => g.procs.every(id => P.form.procs.includes(id));
-function canNext() { const f = P.form; return P.step === 0 ? f.procs.length > 0 : P.step === 3 ? !!(f.name.trim() && f.contact.trim() && f.consent && !P.busy) : true; }
+function canNext() { const f = P.form; return P.step === 0 ? true : P.step === 3 ? !!(f.name.trim() && f.contact.trim() && f.consent && !P.busy) : true; }
 function syncPrimary() { const b = document.querySelector('#primary'); if (b) b.disabled = !canNext(); }
 const pick = (key, list, cur) => `<div class="chips">${list.map(([v, en]) => `<button class="chip" data-act="pick" data-k="${key}" data-v="${esc(v)}" aria-pressed="${cur === v}">${esc(tx(v, en))}</button>`).join('')}</div>`;
 function pIntake() {
@@ -533,17 +546,16 @@ function pIntake() {
   const back = `<button class="btn ghost" data-act="back">${tx('戻る', 'Back')}</button>`;
   const opt = `<span class="badge" style="margin-left:6px">${tx('任意', 'Optional')}</span>`;
   if (s === 0) return `<div class="lp">
-    <section class="galaxy-trust-intro" aria-label="${tx('クリニックのご案内', 'Clinic introduction')}">
-      <div class="galaxy-trust-eyebrow">BYEOL PLASTIC SURGERY · GALAXY</div>
-      <h1>${tx('安心できる美容医療。<br>予約からアフターケアまで、ひとつに。', 'Safe cosmetic care.<br>Booking and aftercare, all in one.')}</h1>
-      <p class="galaxy-trust-brand">${tx('信頼できる韓国のビョル美容外科で。', 'With trusted Byeol Plastic Surgery in Korea.')}</p>
-      <p class="galaxy-trust-foot">${tx('施術にはリスクがあります。安全性や適応は診察時に医師が個別に判断します。', 'All procedures involve risks. Your surgeon will assess suitability and safety during consultation.')}</p>
+    <section class="galaxy-unified-hero" aria-label="${tx('クリニックのご案内', 'Clinic introduction')}">
+      <img class="galaxy-unified-photo" src="/galaxy-hero.jpg" alt="" loading="eager">
+      <div class="galaxy-unified-copy">
+        <div class="galaxy-trust-eyebrow">BYEOL PLASTIC SURGERY · GALAXY</div>
+        <h1>${tx('安心できる美容医療。<br>予約からアフターケアまで、ひとつに。', 'Safe cosmetic care.<br>Booking and aftercare, all in one.')}</h1>
+        <p class="galaxy-trust-brand">${tx('信頼できる韓国のビョル美容外科で。', 'With trusted Byeol Plastic Surgery in Korea.')}</p>
+        <p class="galaxy-trust-foot">${tx('施術にはリスクがあります。安全性や適応は診察時に医師が個別に判断します。', 'All procedures involve risks. Your surgeon will assess suitability and safety during consultation.')}</p>
+      </div>
     </section>
-    <section class="lp-hero"><span class="pill2">${tx('韓国美容医療・日本語で相談', 'Korean beauty care · Japanese support')}</span>
-      <h1>${tx('韓国の美容医療を<br><small>もっと安心・おトクに</small>', 'Explore Korean beauty care<br><small>with confidence</small>')}</h1>
-      <p>${tx('気になる施術を選んで、<br>費用の目安と滞在日数をチェック。', 'Choose treatments to see estimated costs and length of stay.')}</p>
-      <img class="photo" src="/galaxy-hero.jpg" alt="" onload="this.parentNode.classList.add('hp')" onerror="this.remove()">
-      <span class="art" aria-hidden="true"><svg viewBox="0 0 160 190" width="136" height="162"><circle cx="86" cy="104" r="70" fill="var(--accent)" opacity=".13"/><path d="M14 190c2-34 26-50 52-54l14-4 14 4c26 4 50 20 52 54z" fill="var(--accent)"/><path d="M66 124h28v22c0 8-6 14-14 14s-14-6-14-14z" fill="#F1CDBB"/><ellipse cx="80" cy="86" rx="30" ry="37" fill="#F6D9C9"/><path d="M46 92c-8-44 14-66 40-66 30 0 46 24 34 66-2-24-12-40-30-42-14 8-30 14-44 42z" fill="#2B2342"/><path d="M46 90c-4 26 0 46 8 56-12-4-18-26-8-56zM120 90c4 26 0 46-8 56 12-4 18-26 8-56z" fill="#2B2342"/><path d="M68 100q12 8 24 0" stroke="#C97B84" stroke-width="2.600" fill="none" stroke-linecap="round"/><circle cx="52" cy="104" r="2.800" fill="#fff"/><circle cx="108" cy="104" r="2.800" fill="#fff"/></svg></span></section>
+    <div class="galaxy-hero-benefits"><span>♡ ${tx('施術を選ぶ', 'Choose treatment')}</span><span>◇ ${tx('費用の目安', 'Cost estimate')}</span><span>✧ ${tx('相談・術後ケア', 'Consultation & aftercare')}</span></div>
     <div class="galaxy-benefits"><span>◇ ${tx('施術を選ぶ', 'Choose treatment')}</span><span>¥ ${tx('費用の目安', 'Cost estimate')}</span><span>♡ ${tx('日本語で相談', 'Japanese support')}</span></div>
     <div class="galaxy-feature-head"><div><small>BEAUTY MENU</small><h2>${tx('人気の施術', 'Explore treatments')}</h2></div><span>${tx('気になる部位から選択', 'Choose an area')}</span></div>
     <div class="galaxy-photo-menu">${[['eyes','eyes'],['nose','nose'],['face','face'],['young','lift'],['skin','lips']].map(([id,photo])=>{const g=GOALS.find(x=>x.id===id);return `<button data-act="goal" data-v="${id}" aria-pressed="${goalOn(g)}"><img src="/galaxy-${photo}.jpg" alt="" loading="lazy"><span>${tx(g.ja.replace(/<br>/g,' '),g.en.replace(/<br>/g,' '))} ›</span></button>`}).join('')}</div>
@@ -552,7 +564,7 @@ function pIntake() {
       <div class="goals">${GOALS.map(g => `<button class="goal" data-act="goal" data-v="${g.id}" aria-pressed="${goalOn(g)}"><svg viewBox="0 0 24 24" aria-hidden="true">${IC[g.id]}</svg><span>${tx(g.ja, g.en)}</span></button>`).join('')}</div></section>
     <section class="lp-card"><h2 class="lp-h"><span class="n">2</span><span>${tx('気になる施術を選ぶ', 'Choose treatments')}<small>${tx('複数選択できます。', 'You can pick several.')}</small></span></h2>
       <div class="plist">${cfg.procs.map(p => `<button class="proc-row" data-act="proc" data-v="${p.id}" aria-pressed="${f.procs.includes(p.id)}"><span class="box" aria-hidden="true">✓</span><span class="lbl">${esc(pn(p))}</span><span class="chev" aria-hidden="true">›</span></button>`).join('')}</div></section>
-    <button class="btn block cta" id="primary" data-act="next" ${canNext() ? '' : 'disabled'}>${f.procs.length ? tx('費用の目安を見る →', 'See my estimate →') : tx('施術を選んでください', 'Choose a treatment to continue')}</button>
+    <button class="btn block cta" id="primary" data-act="next" ${canNext() ? '' : 'disabled'}>${f.procs.length ? tx('費用の目安を見る →', 'See my estimate →') : tx('施術を選ばず次へ →', 'Continue without selecting →')}</button>
     <div class="tgrid">
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('通常24時間以内に<br>スタッフが返信', 'Staff usually reply<br>within 24 hours')}</span></div>
       <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>${tx('写真・相談内容は<br>担当スタッフのみ確認', 'Photos & messages seen<br>only by assigned staff')}</span></div>
