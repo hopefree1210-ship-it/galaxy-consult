@@ -470,6 +470,26 @@ body.pv header.top.light .lang button{font-family:system-ui,'Apple Color Emoji',
  body.pv .galaxy-unified-copy .galaxy-trust-eyebrow{font-size:8px;line-height:1.4}
 }
 @media(max-width:375px){body.pv header.top.light .brand span{font-size:17px}body.pv header.top.light .lang button{font-size:16px;min-width:26px;padding:5px 3px}body.pv .galaxy-unified-copy{width:65%;max-width:65%;padding-left:11px}body.pv .galaxy-unified-copy h1{font-size:17px}}
+
+/* Restore the original photo-led Korea Beauty Journey hero on phones. */
+body.pv .galaxy-hero-pill{display:inline-flex;border:1px solid #E8C4D2;background:#FFF9FCB8;color:#AD4770;border-radius:999px;font-size:11px;font-weight:800;padding:8px 11px;margin-top:14px}
+body.pv .galaxy-hero-description{font-size:13px;line-height:1.85;color:#675560;font-weight:650;margin-top:16px}
+body.pv .galaxy-unified-copy .galaxy-trust-eyebrow{color:#A94C74;letter-spacing:.21em;font-weight:850}
+@media(max-width:560px){
+ body.pv .galaxy-unified-hero{display:block;position:relative;width:100%;min-height:395px;padding:0;margin:0 0 8px;border-radius:0;overflow:hidden;background:#FFF3F8}
+ body.pv .galaxy-unified-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:67% center;z-index:-2}
+ body.pv .galaxy-unified-hero:before{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(255,247,251,.98) 0%,rgba(255,247,251,.92) 25%,rgba(255,247,251,.68) 44%,rgba(255,247,251,.08) 77%,transparent 100%)}
+ body.pv .galaxy-unified-copy{position:relative;width:65%;max-width:65%;padding:27px 0 24px 14px;box-sizing:border-box}
+ body.pv .galaxy-unified-copy .galaxy-trust-eyebrow{font-size:10px;line-height:1.5;white-space:nowrap}
+ body.pv .galaxy-hero-pill{font-size:10px;padding:7px 9px;max-width:100%;box-sizing:border-box;margin-top:14px}
+ body.pv .galaxy-unified-copy h1{font-size:clamp(19px,5.2vw,25px);line-height:1.65;margin:20px 0 12px;letter-spacing:-.035em;word-break:keep-all}
+ body.pv .galaxy-hero-description{font-size:11px;line-height:1.8;margin-top:12px}
+ body.pv .galaxy-hero-benefits{border:0;background:transparent;box-shadow:none;margin:0 0 16px;padding:13px 0;font-size:10px}
+ body.pv .galaxy-photo-menu{gap:5px}
+ body.pv .galaxy-photo-menu img{height:82px}
+ body.pv .lp>.galaxy-doctors-card{margin-top:18px}
+}
+@media(max-width:375px){body.pv .galaxy-unified-hero{min-height:375px}body.pv .galaxy-unified-copy{width:67%;max-width:67%;padding-left:11px}body.pv .galaxy-unified-copy h1{font-size:19px}body.pv .galaxy-unified-copy .galaxy-trust-eyebrow{font-size:9px}}
 </style>
 </head>
 <body>
@@ -665,19 +685,20 @@ function pIntake() {
     <section class="galaxy-unified-hero" aria-label="${tx('クリニックのご案内', 'Clinic introduction')}">
       <img class="galaxy-unified-photo" src="/galaxy-hero.jpg" alt="" loading="eager">
       <div class="galaxy-unified-copy">
-        <div class="galaxy-trust-eyebrow">BYEOL PLASTIC SURGERY · GALAXY</div>
-        <h1>${tx('安心できる美容医療。<br>予約からアフターケアまで、ひとつに。', 'Safe cosmetic care.<br>Booking and aftercare, all in one.')}</h1>
-        <p class="galaxy-trust-brand">${tx('信頼できる韓国のビョル美容外科で。', 'With trusted Byeol Plastic Surgery in Korea.')}</p>
-        <p class="galaxy-trust-foot">${tx('施術にはリスクがあります。安全性や適応は診察時に医師が個別に判断します。', 'All procedures involve risks. Your surgeon will assess suitability and safety during consultation.')}</p>
+        <div class="galaxy-trust-eyebrow">KOREA BEAUTY JOURNEY</div>
+        <div class="galaxy-hero-pill">${tx('韓国美容医療・日本語で相談', 'Korean beauty care · Multilingual support')}</div>
+        <h1>${tx('韓国の美容医療を<br>もっと安心・おトクに', 'Explore Korean beauty care<br>with confidence')}</h1>
+        <p class="galaxy-hero-description">${tx('気になる施術を選んで、<br>費用の目安と滞在日数をチェック。', 'Choose treatments to check estimated costs and length of stay.')}</p>
       </div>
     </section>
+
+    <div class="galaxy-hero-benefits"><span>♡ ${tx('施術を選ぶ', 'Choose treatment')}</span><span>◇ ${tx('費用の目安', 'Cost estimate')}</span><span>✧ ${tx('相談・術後ケア', 'Consultation & aftercare')}</span></div>
+    <div class="galaxy-feature-head"><div><small>BEAUTY MENU</small><h2>${tx('人気の施術', 'Explore treatments')}</h2></div><span>${tx('気になる部位から選択', 'Choose an area')}</span></div>
+    <div class="galaxy-photo-menu">${[['eyes','eyes'],['nose','nose'],['face','face'],['young','lift'],['skin','lips']].map(([id,photo])=>{const g=GOALS.find(x=>x.id===id);return `<button data-act="goal" data-v="${id}" aria-pressed="${goalOn(g)}"><img src="/galaxy-${photo}.jpg" alt="" loading="lazy"><span>${tx(g.ja.replace(/<br>/g,' '),g.en.replace(/<br>/g,' '))} ›</span></button>`}).join('')}</div>
       <section class="galaxy-doctors-card" aria-label="${tx('医療チームのご紹介', 'Meet our medical team')}">
         <img class="galaxy-doctors-photo" src="/byul-doctors-team.jpg.png" alt="${tx('ビョル美容外科の医療チーム', 'Byeol Plastic Surgery medical team')}" loading="lazy" onerror="this.style.display='none'">
         <div class="galaxy-doctors-copy"><small>MEET THE BYEOL TEAM</small><h3>${tx('ビョル美容外科の医療チーム', 'Meet the Byeol medical team')}</h3><p>${tx('20年の経験を活かした丁寧なカウンセリング。', '20 years of experience, with personalized consultations.')}</p></div>
       </section>
-    <div class="galaxy-hero-benefits"><span>♡ ${tx('施術を選ぶ', 'Choose treatment')}</span><span>◇ ${tx('費用の目安', 'Cost estimate')}</span><span>✧ ${tx('相談・術後ケア', 'Consultation & aftercare')}</span></div>
-    <div class="galaxy-feature-head"><div><small>BEAUTY MENU</small><h2>${tx('人気の施術', 'Explore treatments')}</h2></div><span>${tx('気になる部位から選択', 'Choose an area')}</span></div>
-    <div class="galaxy-photo-menu">${[['eyes','eyes'],['nose','nose'],['face','face'],['young','lift'],['skin','lips']].map(([id,photo])=>{const g=GOALS.find(x=>x.id===id);return `<button data-act="goal" data-v="${id}" aria-pressed="${goalOn(g)}"><img src="/galaxy-${photo}.jpg" alt="" loading="lazy"><span>${tx(g.ja.replace(/<br>/g,' '),g.en.replace(/<br>/g,' '))} ›</span></button>`}).join('')}</div>
     <div class="galaxy-feature-head selection-head"><div><small>YOUR BEAUTY PLAN</small><h2>${tx('あなたに合う施術を探す', 'Find your treatment')}</h2></div></div>
     <section class="lp-card"><h2 class="lp-h"><span class="n">1</span><span>${tx('お悩みを選ぶ', 'What look do you want?')}<small>${tx('気になるお悩みを選んでください。', 'Pick what interests you.')}</small></span></h2>
       <div class="goals">${GOALS.map(g => `<button class="goal" data-act="goal" data-v="${g.id}" aria-pressed="${goalOn(g)}"><svg viewBox="0 0 24 24" aria-hidden="true">${IC[g.id]}</svg><span>${tx(g.ja, g.en)}</span></button>`).join('')}</div></section>
