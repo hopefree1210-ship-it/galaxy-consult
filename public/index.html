@@ -556,7 +556,7 @@ function attachCase() {
 
 /* --- result --- */
 function pResult() {
-  const c = P.c, e = c.est || estimate(c.procs || []), en = P.lang === 'en';
+  const c = P.c, e = c.est || (c.procs?.length ? estimate(c.procs) : { surg: false, krwMin: 0, krwMax: 0, jpyMin: 0, jpyMax: 0, stay: 0 }), en = P.lang === 'en';
   const names = (c.procs || []).map(x => { const p = procOf(x); return p ? pn(p) : x; });
   const next = e.surg ? tx('ビデオ相談（医師スタッフ）をおすすめします。', 'A video consultation with the clinic’s medical staff is recommended.') : tx('まずはチャット相談で十分です。必要に応じてビデオ相談も選べます。', 'Chat is enough to start. You can also book a video consultation if you like.');
   const krw = en ? `₩${(e.krwMin * 10000).toLocaleString()} – ₩${(e.krwMax * 10000).toLocaleString()}` : `₩${e.krwMin.toLocaleString()}万 〜 ₩${e.krwMax.toLocaleString()}万`;
