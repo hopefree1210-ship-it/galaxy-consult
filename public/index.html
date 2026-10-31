@@ -366,6 +366,22 @@ body.pv .galaxy-clinic-contact{display:flex;flex-direction:column;gap:8px;paddin
 body.pv .galaxy-reel-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}body.pv .galaxy-reel-pair .galaxy-reel-link{min-width:0;flex-direction:column;align-items:flex-start;gap:8px}body.pv .galaxy-reel-pair .galaxy-reel-link span:nth-child(2){min-width:0}body.pv .galaxy-review-card{border:1px solid #EED6E1;background:#FFF9FC;border-radius:13px;padding:12px;font-size:13px}body.pv .galaxy-review-card span{color:#B74D79}body.pv .galaxy-review-card p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}body.pv .galaxy-reviews input,body.pv .galaxy-reviews select,body.pv .galaxy-reviews textarea{width:100%}
 
 body.pv .galaxy-aftercare-online{padding:13px 16px;border-radius:13px;background:#FFF4FA;border:1px solid #EFD3E0;color:#A13E69;font-size:14px;font-weight:800;text-align:center}
+
+/* Phone-first hero: keep the model's full face visible and prevent horizontal overflow. */
+@media(max-width:560px){
+ html,body{max-width:100%;overflow-x:clip}
+ body.pv .wrap,body.pv main,body.pv .lp{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+ body.pv .lp>*{min-width:0;max-width:100%;box-sizing:border-box}
+ body.pv .galaxy-unified-hero{width:100%;min-width:0;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;padding-top:clamp(235px,76vw,350px);border-radius:17px;background:#FFF5F9}
+ body.pv .galaxy-unified-photo{inset:0 0 auto;width:100%;height:clamp(250px,84vw,380px);object-fit:contain;object-position:center top}
+ body.pv .galaxy-unified-hero:before{background:linear-gradient(to bottom,rgba(255,247,251,0) 0%,rgba(255,247,251,.03) 37%,rgba(255,247,251,.94) 57%,#FFF7FB 74%);z-index:-1}
+ body.pv .galaxy-unified-copy{position:relative;width:100%;max-width:100%;box-sizing:border-box;padding:15px 18px 24px}
+ body.pv .galaxy-unified-copy h1{font-size:clamp(22px,6.1vw,30px);line-height:1.32;letter-spacing:-.045em;margin:10px 0 11px;overflow-wrap:anywhere}
+ body.pv .galaxy-unified-copy .galaxy-trust-brand{font-size:15px;margin:10px 0 0}
+ body.pv .galaxy-unified-copy .galaxy-trust-foot{font-size:10px;margin-top:13px;padding-top:10px}
+ body.pv .galaxy-hero-benefits{width:100%;min-width:0;box-sizing:border-box;gap:3px;padding:12px 4px}
+ body.pv .galaxy-hero-benefits span{min-width:0;overflow-wrap:anywhere;font-size:clamp(9px,2.6vw,11px)}
+}
 </style>
 </head>
 <body>
