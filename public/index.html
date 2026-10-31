@@ -461,7 +461,7 @@ function pHeader() {
 }
 function pTabs() {
   const unread = P.c?.unreadPatient;
-  const t = [['result', tx('相談内容', 'Overview'), '☰'], ['chat', tx('チャット', 'Chat'), '✉'], ['book', tx('ビデオ予約', 'Video'), '▶'], ['after', tx('術後ケア', 'Aftercare'), '✚']];
+  const t = [['result', tx('相談内容', 'Overview'), '☰'], ['chat', tx('チャット', 'Chat'), '✉'], ['book', tx('相談予約', 'Booking'), '▶'], ['after', tx('術後ケア', 'Aftercare'), '✚']];
   return `<div class="tabbar"><div class="in">${t.map(([k, l, i]) => `<button data-act="tab" data-v="${k}" aria-current="${P.tab === k}"><span aria-hidden="true">${i}</span>${l}${k === 'chat' && unread && P.tab !== 'chat' ? '<span class="dot"></span>' : ''}</button>`).join('')}</div></div>`;
 }
 function renderPatient() {
@@ -537,7 +537,7 @@ function pIntake() {
     <label class="row" style="align-items:flex-start;gap:10px;cursor:pointer"><input type="checkbox" id="consent" data-bind="consent" ${f.consent ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span class="small">${tx('上記の内容と、お預かりした写真・個人情報を相談対応の目的で韓国の病院が取り扱うことに同意します。', 'I agree to the above, and to 별성형외과 handling my photos and personal information in Korea for the purpose of this consultation.')}</span></label>
     <div class="row">${back}<button class="btn cta" id="primary" data-act="submit" ${canNext() ? '' : 'disabled'} style="flex:1">${P.busy ? tx('送信中…', 'Sending…') : tx('無料の見積もりをすぐ見る', 'See my free estimate now')}</button></div></div>`;
 }
-async function submitCase() {
+async async function submitCase() {
   P.busy = true; renderPatient();
   const f = P.form;
   try {
@@ -556,7 +556,7 @@ function attachCase() {
 
 /* --- result --- */
 function pResult() {
-  const c = P.c, e = c.est || estimate(c.procs || []), en = P.lang === 'en';
+  const c = P.c, e = c.est || (c.procs?.length ? estimate(c.procs) : { surg: false, krwMin: 0, krwMax: 0, jpyMin: 0, jpyMax: 0, stay: 0 }), en = P.lang === 'en';
   const names = (c.procs || []).map(x => { const p = procOf(x); return p ? pn(p) : x; });
   const next = e.surg ? tx('ビデオ相談（医師スタッフ）をおすすめします。', 'A video consultation with the clinic’s medical staff is recommended.') : tx('まずはチャット相談で十分です。必要に応じてビデオ相談も選べます。', 'Chat is enough to start. You can also book a video consultation if you like.');
   const krw = en ? `₩${(e.krwMin * 10000).toLocaleString()} – ₩${(e.krwMax * 10000).toLocaleString()}` : `₩${e.krwMin.toLocaleString()}万 〜 ₩${e.krwMax.toLocaleString()}万`;
@@ -622,8 +622,9 @@ function days() { const a = []; const d = new Date(); for (let i = 1; i <= 8; i+
 const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 function pBook() {
   const m = P.c.meeting;
-  if (m?.status === 'confirmed') return `<div class="stack"><h2 class="disp">${tx('ビデオ相談が確定しました', 'Your video consultation is confirmed')}</h2>
+  if (['confirmed','in_progress','completed'].includes(m?.status)) return `<div class="stack"><h2 class="disp">${tx('ビデオ相談が確定しました', 'Your video consultation is confirmed')}</h2>
     <div class="card stack"><div class="price">${esc(m.at.replace('T', ' '))}</div><div class="muted small">${tx('日本時間（韓国と時差なし）', 'Japan time (same as Korea)')}</div>
+    ${m.status === 'completed' ? `<div class="notice">Consultation completed.</div>` : m.status === 'in_progress' ? `<button class="btn block" data-act="tab" data-v="chat">Open consultation chat / チャットを開く</button>` : Date.now() >= Date.parse(m.at + ':00+09:00') - 600000 ? `<button class="btn block" data-act="startConsult">Start consultation / 相談開始</button>` : `<div class="notice">You can join 10 minutes before the appointment. / 予約10分前から入室できます。</div>`}
     ${/^https:\/\//.test(m.link || '') ? `<a class="btn" style="text-align:center;text-decoration:none" href="${esc(m.link)}" target="_blank" rel="noopener">${tx('ビデオ相談に参加する', 'Join the video consultation')}</a>` : `<div class="notice">${tx('参加用リンクは、開始前にチャットでお送りします。', 'We will send the joining link in the chat before the start time.')}</div>`}
     <div class="small muted">${tx('通訳を交えてご案内します。静かな場所で、顔の写真を見せられる準備をお願いします。', 'An interpreter will assist. Please join from a quiet place and have your face photos ready to show.')}</div></div>
     <button class="btn ghost" data-act="rebook">${tx('日時を変更したい', 'Change the date or time')}</button></div>`;
@@ -635,7 +636,7 @@ function pBook() {
     <div class="slot-grid">${times.map(t => `<button class="chip" data-act="time" data-v="${t}" aria-pressed="${P.slotTime === t}">${t}</button>`).join('')}</div>
     <button class="btn block" data-act="reqslot" ${P.slotDay && P.slotTime ? '' : 'disabled'}>${tx('この日時で希望を送る', 'Request this time')}</button></div>`;
 }
-async function requestSlot() {
+async async function requestSlot() {
   try { await store.requestSlot(`${P.slotDay}T${P.slotTime}`); toast(tx('希望日時を送信しました', 'Request sent')); } catch { toast(tx('送信できませんでした', 'Could not send')); }
 }
 
@@ -695,7 +696,7 @@ function sInbox() {
   </div><div class="detail">${ST.sel && ST.c ? sDetail() : '<div class="card muted">왼쪽에서 상담을 선택하세요.</div>'}</div></div>`;
 }
 function sTriBan(c) { return c.triage ? `<div class="notice" style="background:var(--${TRIK[c.triage][1]}-bg);color:var(--${TRIK[c.triage][1]})"><b>술후 ${esc(c.dayN || '?')}일차 · ${TRIK[c.triage][0]}</b> — 환자 입력 증상 기준의 규칙 판정입니다(사진 판독 아님). 반드시 의료진이 사진을 확인하세요.</div>` : ''; }
-function sMeetStat(m) { return m ? `<div class="row"><span class="badge ${m.status === 'confirmed' ? 'good' : 'warn'}">${m.status === 'confirmed' ? '확정' : '환자 희망'}</span><b>${esc(m.at.replace('T', ' '))}</b>${m.link ? `<a href="${esc(m.link)}" target="_blank" rel="noopener" class="small">링크 열기</a>` : ''}</div>` : '<div class="muted small">환자의 희망 일시가 아직 없습니다.</div>'; }
+function sMeetStat(m) { return m ? `<div class="row"><span class="badge ${m.status === 'confirmed' ? 'good' : 'warn'}">${m.status === 'completed' ? '종료' : m.status === 'in_progress' ? '진행 중' : m.status === 'confirmed' ? '확정' : '환자 희망'}</span><b>${esc(m.at.replace('T', ' '))}</b>${m.link ? `<a href="${esc(m.link)}" target="_blank" rel="noopener" class="small">링크 열기</a>` : ''}</div>` : '<div class="muted small">환자의 희망 일시가 아직 없습니다.</div>'; }
 function sDetail() {
   const c = ST.c, e = c.est || {}, m = c.meeting;
   return `<div class="stack">
@@ -709,6 +710,7 @@ function sDetail() {
       ${(c.photos || []).length ? `<div class="photos" style="margin-top:12px">${c.photos.map((p, i) => `<img src="${p}" alt="사진${i + 1}" data-act="zoom" data-src="${i}">`).join('')}</div>` : ''}</div>
     <div class="card stack"><h3 class="disp">화상상담</h3>
       <div id="meetstat">${sMeetStat(m)}</div>
+      ${m?.status === "confirmed" ? `<button class="btn sm" data-act="startStaffConsult">상담 시작</button>` : m?.status === "in_progress" ? `<button class="btn sm" data-act="endStaffConsult">상담 종료</button>` : ""}
       <div class="row"><input type="text" id="meetAt" placeholder="일시 (예: 2026-11-03 15:00)" value="${esc(ST.meetAt || (m?.at || '').replace('T', ' '))}" data-bind="meetAt" style="flex:1;min-width:150px">
       <input type="text" id="meetLink" placeholder="https:// 화상회의 링크 (Zoom 등)" value="${esc(ST.meetLink || m?.link || '')}" data-bind="meetLink" style="flex:2;min-width:180px">
       <button class="btn sm" data-act="confirmMeet">확정하고 환자에게 알림</button></div></div>
@@ -807,6 +809,7 @@ document.addEventListener('click', async e => {
   else if (a === 'quick') { const t = $('#pmsg'); t.value = (P.lang === 'en' ? QUICK_EN : QUICK_JA)[+v]; t.dispatchEvent(new Event('input', { bubbles: true })); t.focus(); }
   else if (a === 'day') { P.slotDay = v; renderPatient(); } else if (a === 'time') { P.slotTime = v; renderPatient(); }
   else if (a === 'reqslot') requestSlot();
+  else if (a === 'startConsult') { try { await api('/cases/' + P.caseId + '/consultation/start', { method: 'POST', secret: secret() }); P.tab = 'chat'; renderPatient(); } catch { toast('Not ready / 予約時間をご確認ください'); } }
   else if (a === 'rebook') { await store.requestSlot(null); }
   else if (a === 'sym') { P.sym = P.sym.includes(v) ? P.sym.filter(x => x !== v) : [...P.sym, v]; renderPatient(); }
   else if (a === 'asend') sendAfter();
@@ -830,6 +833,7 @@ async function staffAct(a, v, b) {
     await store.staffSend(ST.sel, ja, ST.koDraft.trim() || ja);
     ST.jaDraft = ST.koDraft = ''; $('#jaDraft').value = ''; $('#koDraft').value = ''; $('#trmsg').textContent = ''; toast('전송했습니다');
   }
+  else if (a === 'startStaffConsult' || a === 'endStaffConsult') { try { await api('/staff/cases/' + ST.sel + '/consultation/' + (a === 'startStaffConsult' ? 'start' : 'end'), { method: 'POST' }); toast('상담 상태가 변경되었습니다'); } catch { toast('상담 상태 변경 실패'); } }
   else if (a === 'confirmMeet') {
     const at = (ST.meetAt || ST.c.meeting?.at || '').trim().replace(' ', 'T'), link = (ST.meetLink || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(at)) { toast('일시를 2026-11-03 15:00 형식으로 입력하세요'); return; }
@@ -865,5 +869,32 @@ async function boot() {
 boot();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 </script>
-</body>
+<section id="gx-free-consult" class="gx-free-consult" aria-label="Free consultation">
+<h2>✦ <span data-ja="無料カウンセリング" data-en="Free consultation">無料カウンセリング</span></h2>
+<p data-ja="施術が決まっていなくてもお気軽にご相談ください。" data-en="Not sure which treatment? Ask us for free.">施術が決まっていなくてもお気軽にご相談ください。</p>
+<form id="gx-free-form" class="gx-free-form">
+<label>Name / お名前<input name="name" required maxlength="60" autocomplete="name"></label>
+<label>Country / お住まいの国<input name="country" required maxlength="60" placeholder="Japan"></label>
+<label>Language / 言語<select name="lang"><option value="ja">日本語</option><option value="en">English</option></select></label>
+<label>Contact method / 連絡方法<select name="channel"><option value="line">LINE</option><option value="whatsapp">WhatsApp</option><option value="email">Email</option></select></label>
+<label>LINE ID / WhatsApp / Email<input name="contact" required maxlength="120" autocomplete="email"></label>
+<label>Message / ご相談内容<textarea name="concerns" maxlength="1500" placeholder="ご希望の施術、時期、予算など（任意）"></textarea></label>
+<label class="gx-consent"><input type="checkbox" name="consent" required> <span>個人情報を相談対応のために収集・利用することに同意します。 / I consent to the collection and use of my information for consultation.</span></label>
+<button class="gx-free-submit" type="submit">無料で相談する · Request consultation</button>
+<p id="gx-free-status" role="status" aria-live="polite"></p>
+</form></section><style>
+.gx-free-consult{max-width:520px;margin:28px auto 110px;padding:25px 20px;border-radius:24px;background:linear-gradient(140deg,#fff0f6,#fff 58%,#f7f0ff);border:1px solid #f6c9df;box-shadow:0 12px 32px #b7377020;color:#48233d;font-family:'Noto Sans JP',sans-serif}
+.gx-free-consult h2{font-size:23px;color:#c12b73;margin:0 0 6px}.gx-free-consult p{font-size:13px}.gx-free-form{display:grid;gap:13px;margin-top:18px}.gx-free-form label{display:grid;gap:5px;font-size:13px;font-weight:700}.gx-free-form input:not([type=checkbox]),.gx-free-form select,.gx-free-form textarea{width:100%;box-sizing:border-box;min-height:46px;padding:11px;border:1px solid #e8c9d8;border-radius:12px;background:#fff;color:#48233d}.gx-free-form textarea{min-height:90px}.gx-free-form .gx-consent{display:flex;align-items:flex-start;gap:10px;font-weight:400}.gx-consent input{margin-top:4px}.gx-free-submit{border:0;border-radius:16px;background:linear-gradient(105deg,#ef4e92,#bd48cb);color:white;font-weight:800;padding:15px;min-height:50px;cursor:pointer}.gx-free-submit:disabled{opacity:.65}
+</style>
+<script>
+(function(){
+function init(){const form=document.getElementById('gx-free-form');if(!form)return;
+form.addEventListener('submit',async e=>{e.preventDefault();const btn=form.querySelector('button'),out=document.getElementById('gx-free-status'),d=new FormData(form);btn.disabled=true;out.textContent='送信中… / Sending…';
+try{const response=await fetch('/api/consultations/free',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:d.get('name'),country:d.get('country'),lang:d.get('lang'),channel:d.get('channel'),contact:d.get('contact'),concerns:d.get('concerns'),consent:d.get('consent')==='on'})});if(!response.ok)throw Error('send');const result=await response.json();
+try{localStorage.setItem('galaxy_case',JSON.stringify(result.id));localStorage.setItem('galaxy_secret',JSON.stringify(result.secret));}catch{}
+out.textContent='受付完了 / Request received. Opening Galaxy…';form.reset();setTimeout(()=>location.reload(),900);
+}catch{out.textContent='送信できませんでした。もう一度お試しください。 / Could not submit. Please retry.'}finally{btn.disabled=false}});
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script></body>
 </html>

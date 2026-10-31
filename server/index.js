@@ -81,6 +81,27 @@ app.post('/api/cases', limit('newcase', 10, 3600e3), (req, res) => {
   sys(id, now + 1, L(c, 'ご相談を受け付けました。スタッフが確認し、24時間以内にこのチャットでお返事します。', 'We have received your inquiry. Our staff will review it and reply in this chat within 24 hours.'));
   res.status(201).json({ id, secret });
 });
+/* International quick consultation: creates an ordinary case visible in staff inbox. */
+app.post('/api/consultations/free', limit('freeconsult', 8, 3600e3), (req, res) => {
+  const b = req.body || {}, now = Date.now(), cfg = getCfg();
+  const name = clean(b.name, 60), contact = clean(b.contact, 120);
+  const country = clean(b.country, 60), channel = clean(b.channel, 30);
+  const concerns = clean(b.concerns, 1500);
+  const lang = b.lang === 'en' ? 'en' : 'ja';
+  if (!name || !contact || !country || !['line','whatsapp','email'].includes(channel) || b.consent !== true)
+    return res.status(400).json({ error: 'invalid' });
+  const procs = (Array.isArray(b.procs) ? b.procs : []).filter(id => cfg.procs.some(p => p.id === id)).slice(0, 9);
+  const id = crypto.randomBytes(8).toString('hex'), secret = crypto.randomBytes(24).toString('hex');
+  const c = { id, createdAt: now, lastAt: now, status: 'new', unreadStaff: true, unreadPatient: false,
+    lang, source: 'direct', ref: null, stage: 'pre', triage: '', meeting: null, inquiryType: 'free_consultation',
+    country, channel, name, age: '', procs, concerns, budget: '', visit: '', history: '',
+    contact, photos: [], est: procs.length ? estimate(procs, cfg) : null, consentAt: now };
+  cases.insert(c, hash(secret));
+  messages.add(id, { from: 'patient', kind: 'text', at: now, ja: '[無料相談 / Free consultation] ' +
+    'Country: ' + country + ' / Contact via: ' + channel + '\\n' + (concerns || 'Treatment undecided') });
+  sys(id, now + 1, L(c, '無料相談を受け付けました。担当者がこのチャットで返信します。', 'Your free consultation request was received. Our team will reply in this chat.'));
+  res.status(201).json({ id, secret });
+});
 app.get('/api/cases/:id', patientAuth, (req, res) => res.json(req.c));
 app.get('/api/cases/:id/messages', patientAuth, (req, res) => res.json(messages.list(req.c.id)));
 app.post('/api/cases/:id/lang', patientAuth, (req, res) => { req.c.lang = req.body?.lang === 'en' ? 'en' : 'ja'; cases.save(req.c); res.json({ ok: true }); });
@@ -97,7 +118,7 @@ const SLOT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 app.post('/api/cases/:id/meeting', patientAuth, (req, res) => {
   const c = req.c, now = Date.now(), at = req.body?.at;
   if (at === null) { c.meeting = null; cases.save(c); return res.json({ ok: true }); }
-  if (!SLOT.test(at || '')) return res.status(400).json({ error: 'invalid' });
+  if (!SLOT.test(at || '') || !Number.isFinite(Date.parse(at + ':00+09:00')) || Date.parse(at + ':00+09:00') < now) return res.status(400).json({ error: 'invalid' });
   c.meeting = { status: 'requested', at }; Object.assign(c, { lastAt: now, unreadStaff: true }); cases.save(c);
   sys(c.id, now, L(c, `ビデオ相談の希望：${at.replace('T', ' ')}（確定までお待ちください）`, `Video consultation requested for ${at.replace('T', ' ')} (please wait for confirmation).`));
   res.json({ ok: true });
@@ -130,9 +151,35 @@ app.post('/api/staff/cases/:id/messages', staffOnly, staffCase, (req, res) => {
   Object.assign(c, { lastAt: now, unreadPatient: true, status: c.status === 'new' ? 'replied' : c.status }); cases.save(c);
   nudge(c.ref); res.json({ ok: true });
 });
+const consultationWindow = c => ['confirmed','in_progress'].includes(c.meeting?.status) && Date.now() >= Date.parse(c.meeting.at + ':00+09:00') - 10 * 60e3;
+app.post('/api/cases/:id/consultation/start', patientAuth, (req, res) => {
+  const c = req.c;
+  if (!consultationWindow(c)) return res.status(409).json({ error: 'not_ready' });
+  if (c.meeting.status !== 'in_progress') {
+    c.meeting.status = 'in_progress'; c.meeting.startedAt = Date.now(); c.lastAt = Date.now(); c.unreadStaff = true;
+    cases.save(c); sys(c.id, Date.now(), L(c, '相談が始まりました。チャットでお話しください。', 'Your consultation has started. Please use the chat.'));
+  }
+  res.json({ ok: true });
+});
+app.post('/api/staff/cases/:id/consultation/start', staffOnly, staffCase, (req, res) => {
+  const c = req.c;
+  if (!consultationWindow(c)) return res.status(409).json({ error: 'not_ready' });
+  if (c.meeting.status !== 'in_progress') {
+    c.meeting.status = 'in_progress'; c.meeting.startedAt = Date.now(); c.lastAt = Date.now(); c.unreadPatient = true;
+    cases.save(c); sys(c.id, Date.now(), L(c, '担当者が相談を開始しました。チャットにお進みください。', 'The team has started your consultation. Open the chat.'));
+  }
+  res.json({ ok: true });
+});
+app.post('/api/staff/cases/:id/consultation/end', staffOnly, staffCase, (req, res) => {
+  const c = req.c;
+  if (c.meeting?.status !== 'in_progress') return res.status(409).json({ error: 'not_in_progress' });
+  c.meeting.status = 'completed'; c.meeting.endedAt = Date.now(); c.lastAt = Date.now(); c.unreadPatient = true;
+  cases.save(c); sys(c.id, Date.now(), L(c, '本日の相談は終了しました。ありがとうございました。', 'This consultation has ended. Thank you.'));
+  res.json({ ok: true });
+});
 app.post('/api/staff/cases/:id/meeting', staffOnly, staffCase, (req, res) => {
   const c = req.c, now = Date.now(), at = clean(req.body?.at, 16), link = clean(req.body?.link, 500);
-  if (!SLOT.test(at) || (link && !/^https:\/\//.test(link))) return res.status(400).json({ error: 'invalid' });
+  if (!SLOT.test(at) || !Number.isFinite(Date.parse(at + ':00+09:00')) || Date.parse(at + ':00+09:00') < now || (link && !/^https:\/\//.test(link))) return res.status(400).json({ error: 'invalid' });
   c.meeting = { status: 'confirmed', at, link }; Object.assign(c, { status: 'booked', lastAt: now, unreadPatient: true }); cases.save(c);
   sys(c.id, now, L(c, `ビデオ相談が確定しました：${at.replace('T', ' ')}（日本時間）。「ビデオ予約」タブから参加できます。`, `Your video consultation is confirmed: ${at.replace('T', ' ')} (Japan/Korea time). Join from the "Video" tab.`));
   nudge(c.ref); res.json({ ok: true });
