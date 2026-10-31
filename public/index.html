@@ -532,12 +532,13 @@ function pIntake() {
   return `${bar}<div class="stack"><h2 class="disp">${tx('最後に、ご連絡先', 'Last step: your details')}</h2>
     <label class="f">${tx('お名前（ニックネーム可）', 'Name (a nickname is fine)')}<input type="text" id="name" data-bind="name" value="${esc(f.name)}" autocomplete="nickname"></label>
     <label class="f">${tx('LINE ID またはメールアドレス', 'LINE ID or email address')}<input type="text" id="contact" data-bind="contact" value="${esc(f.contact)}" autocomplete="email"></label>
+    <div class="notice" style="margin-top:10px">${tx('ご希望の場合、送信後に「相談予約」から日時を選んでスタッフに予約をリクエストできます。これまでの見積もり・チャット機能はそのまま使えます。', 'After submitting, you can optionally request an appointment from Booking. Estimates and chat remain available.')}</div>
     <p class="muted small" style="margin:0">${tx('お見積もり・ご相談の連絡以外には使用しません。返信はこのアプリのチャットでお知らせします。', 'Your contact details are used only for your estimate and consultation. Replies appear in this app’s chat.')}</p>
     <div class="notice legal">${consentText()}</div>
     <label class="row" style="align-items:flex-start;gap:10px;cursor:pointer"><input type="checkbox" id="consent" data-bind="consent" ${f.consent ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span class="small">${tx('上記の内容と、お預かりした写真・個人情報を相談対応の目的で韓国の病院が取り扱うことに同意します。', 'I agree to the above, and to 별성형외과 handling my photos and personal information in Korea for the purpose of this consultation.')}</span></label>
     <div class="row">${back}<button class="btn cta" id="primary" data-act="submit" ${canNext() ? '' : 'disabled'} style="flex:1">${P.busy ? tx('送信中…', 'Sending…') : tx('無料の見積もりをすぐ見る', 'See my free estimate now')}</button></div></div>`;
 }
-async async function submitCase() {
+async function submitCase() {
   P.busy = true; renderPatient();
   const f = P.form;
   try {
@@ -636,7 +637,7 @@ function pBook() {
     <div class="slot-grid">${times.map(t => `<button class="chip" data-act="time" data-v="${t}" aria-pressed="${P.slotTime === t}">${t}</button>`).join('')}</div>
     <button class="btn block" data-act="reqslot" ${P.slotDay && P.slotTime ? '' : 'disabled'}>${tx('この日時で希望を送る', 'Request this time')}</button></div>`;
 }
-async async function requestSlot() {
+async function requestSlot() {
   try { await store.requestSlot(`${P.slotDay}T${P.slotTime}`); toast(tx('希望日時を送信しました', 'Request sent')); } catch { toast(tx('送信できませんでした', 'Could not send')); }
 }
 
@@ -869,32 +870,5 @@ async function boot() {
 boot();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 </script>
-<section id="gx-free-consult" class="gx-free-consult" aria-label="Free consultation">
-<h2>✦ <span data-ja="無料カウンセリング" data-en="Free consultation">無料カウンセリング</span></h2>
-<p data-ja="施術が決まっていなくてもお気軽にご相談ください。" data-en="Not sure which treatment? Ask us for free.">施術が決まっていなくてもお気軽にご相談ください。</p>
-<form id="gx-free-form" class="gx-free-form">
-<label>Name / お名前<input name="name" required maxlength="60" autocomplete="name"></label>
-<label>Country / お住まいの国<input name="country" required maxlength="60" placeholder="Japan"></label>
-<label>Language / 言語<select name="lang"><option value="ja">日本語</option><option value="en">English</option></select></label>
-<label>Contact method / 連絡方法<select name="channel"><option value="line">LINE</option><option value="whatsapp">WhatsApp</option><option value="email">Email</option></select></label>
-<label>LINE ID / WhatsApp / Email<input name="contact" required maxlength="120" autocomplete="email"></label>
-<label>Message / ご相談内容<textarea name="concerns" maxlength="1500" placeholder="ご希望の施術、時期、予算など（任意）"></textarea></label>
-<label class="gx-consent"><input type="checkbox" name="consent" required> <span>個人情報を相談対応のために収集・利用することに同意します。 / I consent to the collection and use of my information for consultation.</span></label>
-<button class="gx-free-submit" type="submit">無料で相談する · Request consultation</button>
-<p id="gx-free-status" role="status" aria-live="polite"></p>
-</form></section><style>
-.gx-free-consult{max-width:520px;margin:28px auto 110px;padding:25px 20px;border-radius:24px;background:linear-gradient(140deg,#fff0f6,#fff 58%,#f7f0ff);border:1px solid #f6c9df;box-shadow:0 12px 32px #b7377020;color:#48233d;font-family:'Noto Sans JP',sans-serif}
-.gx-free-consult h2{font-size:23px;color:#c12b73;margin:0 0 6px}.gx-free-consult p{font-size:13px}.gx-free-form{display:grid;gap:13px;margin-top:18px}.gx-free-form label{display:grid;gap:5px;font-size:13px;font-weight:700}.gx-free-form input:not([type=checkbox]),.gx-free-form select,.gx-free-form textarea{width:100%;box-sizing:border-box;min-height:46px;padding:11px;border:1px solid #e8c9d8;border-radius:12px;background:#fff;color:#48233d}.gx-free-form textarea{min-height:90px}.gx-free-form .gx-consent{display:flex;align-items:flex-start;gap:10px;font-weight:400}.gx-consent input{margin-top:4px}.gx-free-submit{border:0;border-radius:16px;background:linear-gradient(105deg,#ef4e92,#bd48cb);color:white;font-weight:800;padding:15px;min-height:50px;cursor:pointer}.gx-free-submit:disabled{opacity:.65}
-</style>
-<script>
-(function(){
-function init(){const form=document.getElementById('gx-free-form');if(!form)return;
-form.addEventListener('submit',async e=>{e.preventDefault();const btn=form.querySelector('button'),out=document.getElementById('gx-free-status'),d=new FormData(form);btn.disabled=true;out.textContent='送信中… / Sending…';
-try{const response=await fetch('/api/consultations/free',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:d.get('name'),country:d.get('country'),lang:d.get('lang'),channel:d.get('channel'),contact:d.get('contact'),concerns:d.get('concerns'),consent:d.get('consent')==='on'})});if(!response.ok)throw Error('send');const result=await response.json();
-try{localStorage.setItem('galaxy_case',JSON.stringify(result.id));localStorage.setItem('galaxy_secret',JSON.stringify(result.secret));}catch{}
-out.textContent='受付完了 / Request received. Opening Galaxy…';form.reset();setTimeout(()=>location.reload(),900);
-}catch{out.textContent='送信できませんでした。もう一度お試しください。 / Could not submit. Please retry.'}finally{btn.disabled=false}});
-}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-</script></body>
+</body>
 </html>
