@@ -461,7 +461,7 @@ function pHeader() {
 }
 function pTabs() {
   const unread = P.c?.unreadPatient;
-  const t = [['result', tx('相談内容', 'Overview'), '☰'], ['chat', tx('チャット', 'Chat'), '✉'], ['book', tx('ビデオ予約', 'Video'), '▶'], ['after', tx('術後ケア', 'Aftercare'), '✚']];
+  const t = [['result', tx('相談内容', 'Overview'), '☰'], ['chat', tx('チャット', 'Chat'), '✉'], ['book', tx('相談予約', 'Booking'), '▶'], ['after', tx('術後ケア', 'Aftercare'), '✚']];
   return `<div class="tabbar"><div class="in">${t.map(([k, l, i]) => `<button data-act="tab" data-v="${k}" aria-current="${P.tab === k}"><span aria-hidden="true">${i}</span>${l}${k === 'chat' && unread && P.tab !== 'chat' ? '<span class="dot"></span>' : ''}</button>`).join('')}</div></div>`;
 }
 function renderPatient() {
@@ -622,8 +622,9 @@ function days() { const a = []; const d = new Date(); for (let i = 1; i <= 8; i+
 const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 function pBook() {
   const m = P.c.meeting;
-  if (m?.status === 'confirmed') return `<div class="stack"><h2 class="disp">${tx('ビデオ相談が確定しました', 'Your video consultation is confirmed')}</h2>
+  if (['confirmed','in_progress','completed'].includes(m?.status)) return `<div class="stack"><h2 class="disp">${tx('ビデオ相談が確定しました', 'Your video consultation is confirmed')}</h2>
     <div class="card stack"><div class="price">${esc(m.at.replace('T', ' '))}</div><div class="muted small">${tx('日本時間（韓国と時差なし）', 'Japan time (same as Korea)')}</div>
+    ${m.status === 'completed' ? `<div class="notice">Consultation completed.</div>` : m.status === 'in_progress' ? `<button class="btn block" data-act="tab" data-v="chat">Open consultation chat / チャットを開く</button>` : Date.now() >= Date.parse(m.at + ':00+09:00') - 600000 ? `<button class="btn block" data-act="startConsult">Start consultation / 相談開始</button>` : `<div class="notice">You can join 10 minutes before the appointment. / 予約10分前から入室できます。</div>`}
     ${/^https:\/\//.test(m.link || '') ? `<a class="btn" style="text-align:center;text-decoration:none" href="${esc(m.link)}" target="_blank" rel="noopener">${tx('ビデオ相談に参加する', 'Join the video consultation')}</a>` : `<div class="notice">${tx('参加用リンクは、開始前にチャットでお送りします。', 'We will send the joining link in the chat before the start time.')}</div>`}
     <div class="small muted">${tx('通訳を交えてご案内します。静かな場所で、顔の写真を見せられる準備をお願いします。', 'An interpreter will assist. Please join from a quiet place and have your face photos ready to show.')}</div></div>
     <button class="btn ghost" data-act="rebook">${tx('日時を変更したい', 'Change the date or time')}</button></div>`;
@@ -709,6 +710,7 @@ function sDetail() {
       ${(c.photos || []).length ? `<div class="photos" style="margin-top:12px">${c.photos.map((p, i) => `<img src="${p}" alt="사진${i + 1}" data-act="zoom" data-src="${i}">`).join('')}</div>` : ''}</div>
     <div class="card stack"><h3 class="disp">화상상담</h3>
       <div id="meetstat">${sMeetStat(m)}</div>
+      ${m?.status === "confirmed" ? `<button class="btn sm" data-act="startStaffConsult">상담 시작</button>` : m?.status === "in_progress" ? `<button class="btn sm" data-act="endStaffConsult">상담 종료</button>` : ""}
       <div class="row"><input type="text" id="meetAt" placeholder="일시 (예: 2026-11-03 15:00)" value="${esc(ST.meetAt || (m?.at || '').replace('T', ' '))}" data-bind="meetAt" style="flex:1;min-width:150px">
       <input type="text" id="meetLink" placeholder="https:// 화상회의 링크 (Zoom 등)" value="${esc(ST.meetLink || m?.link || '')}" data-bind="meetLink" style="flex:2;min-width:180px">
       <button class="btn sm" data-act="confirmMeet">확정하고 환자에게 알림</button></div></div>
@@ -807,6 +809,7 @@ document.addEventListener('click', async e => {
   else if (a === 'quick') { const t = $('#pmsg'); t.value = (P.lang === 'en' ? QUICK_EN : QUICK_JA)[+v]; t.dispatchEvent(new Event('input', { bubbles: true })); t.focus(); }
   else if (a === 'day') { P.slotDay = v; renderPatient(); } else if (a === 'time') { P.slotTime = v; renderPatient(); }
   else if (a === 'reqslot') requestSlot();
+  else if (a === 'startConsult') { try { await api('/cases/' + P.caseId + '/consultation/start', { method: 'POST' }); P.tab = 'chat'; renderPatient(); } catch { toast('Not ready / 予約時間をご確認ください'); } }
   else if (a === 'rebook') { await store.requestSlot(null); }
   else if (a === 'sym') { P.sym = P.sym.includes(v) ? P.sym.filter(x => x !== v) : [...P.sym, v]; renderPatient(); }
   else if (a === 'asend') sendAfter();
@@ -830,6 +833,7 @@ async function staffAct(a, v, b) {
     await store.staffSend(ST.sel, ja, ST.koDraft.trim() || ja);
     ST.jaDraft = ST.koDraft = ''; $('#jaDraft').value = ''; $('#koDraft').value = ''; $('#trmsg').textContent = ''; toast('전송했습니다');
   }
+  else if (a === 'startStaffConsult' || a === 'endStaffConsult') { try { await api('/staff/cases/' + ST.sel + '/consultation/' + (a === 'startStaffConsult' ? 'start' : 'end'), { method: 'POST' }); toast('상담 상태가 변경되었습니다'); } catch { toast('상담 상태 변경 실패'); } }
   else if (a === 'confirmMeet') {
     const at = (ST.meetAt || ST.c.meeting?.at || '').trim().replace(' ', 'T'), link = (ST.meetLink || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(at)) { toast('일시를 2026-11-03 15:00 형식으로 입력하세요'); return; }
