@@ -81,6 +81,27 @@ app.post('/api/cases', limit('newcase', 10, 3600e3), (req, res) => {
   sys(id, now + 1, L(c, 'ご相談を受け付けました。スタッフが確認し、24時間以内にこのチャットでお返事します。', 'We have received your inquiry. Our staff will review it and reply in this chat within 24 hours.'));
   res.status(201).json({ id, secret });
 });
+/* International quick consultation: creates an ordinary case visible in staff inbox. */
+app.post('/api/consultations/free', limit('freeconsult', 8, 3600e3), (req, res) => {
+  const b = req.body || {}, now = Date.now(), cfg = getCfg();
+  const name = clean(b.name, 60), contact = clean(b.contact, 120);
+  const country = clean(b.country, 60), channel = clean(b.channel, 30);
+  const concerns = clean(b.concerns, 1500);
+  const lang = b.lang === 'en' ? 'en' : 'ja';
+  if (!name || !contact || !country || !['line','whatsapp','email'].includes(channel) || b.consent !== true)
+    return res.status(400).json({ error: 'invalid' });
+  const procs = (Array.isArray(b.procs) ? b.procs : []).filter(id => cfg.procs.some(p => p.id === id)).slice(0, 9);
+  const id = crypto.randomBytes(8).toString('hex'), secret = crypto.randomBytes(24).toString('hex');
+  const c = { id, createdAt: now, lastAt: now, status: 'new', unreadStaff: true, unreadPatient: false,
+    lang, source: 'direct', ref: null, stage: 'pre', triage: '', meeting: null, inquiryType: 'free_consultation',
+    country, channel, name, age: '', procs, concerns, budget: '', visit: '', history: '',
+    contact, photos: [], est: procs.length ? estimate(procs, cfg) : null, consentAt: now };
+  cases.insert(c, hash(secret));
+  messages.add(id, { from: 'patient', kind: 'text', at: now, ja: '[無料相談 / Free consultation] ' +
+    'Country: ' + country + ' / Contact via: ' + channel + '\\n' + (concerns || 'Treatment undecided') });
+  sys(id, now + 1, L(c, '無料相談を受け付けました。担当者がこのチャットで返信します。', 'Your free consultation request was received. Our team will reply in this chat.'));
+  res.status(201).json({ id, secret });
+});
 app.get('/api/cases/:id', patientAuth, (req, res) => res.json(req.c));
 app.get('/api/cases/:id/messages', patientAuth, (req, res) => res.json(messages.list(req.c.id)));
 app.post('/api/cases/:id/lang', patientAuth, (req, res) => { req.c.lang = req.body?.lang === 'en' ? 'en' : 'ja'; cases.save(req.c); res.json({ ok: true }); });
