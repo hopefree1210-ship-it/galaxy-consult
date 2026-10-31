@@ -562,7 +562,6 @@ function pIntake() {
       </div>
     </section>
     <div class="galaxy-hero-benefits"><span>♡ ${tx('施術を選ぶ', 'Choose treatment')}</span><span>◇ ${tx('費用の目安', 'Cost estimate')}</span><span>✧ ${tx('相談・術後ケア', 'Consultation & aftercare')}</span></div>
-    <div class="galaxy-benefits"><span>◇ ${tx('施術を選ぶ', 'Choose treatment')}</span><span>¥ ${tx('費用の目安', 'Cost estimate')}</span><span>♡ ${tx('日本語で相談', 'Japanese support')}</span></div>
     <div class="galaxy-feature-head"><div><small>BEAUTY MENU</small><h2>${tx('人気の施術', 'Explore treatments')}</h2></div><span>${tx('気になる部位から選択', 'Choose an area')}</span></div>
     <div class="galaxy-photo-menu">${[['eyes','eyes'],['nose','nose'],['face','face'],['young','lift'],['skin','lips']].map(([id,photo])=>{const g=GOALS.find(x=>x.id===id);return `<button data-act="goal" data-v="${id}" aria-pressed="${goalOn(g)}"><img src="/galaxy-${photo}.jpg" alt="" loading="lazy"><span>${tx(g.ja.replace(/<br>/g,' '),g.en.replace(/<br>/g,' '))} ›</span></button>`}).join('')}</div>
     <div class="galaxy-feature-head selection-head"><div><small>YOUR BEAUTY PLAN</small><h2>${tx('あなたに合う施術を探す', 'Find your treatment')}</h2></div></div>
