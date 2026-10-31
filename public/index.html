@@ -446,20 +446,6 @@ body.pv .galaxy-seoul-slideshow img:nth-child(4){animation-delay:18s;object-fit:
 @media(max-width:560px){body.pv .galaxy-seoul-slideshow{height:clamp(240px,70vw,370px)}}
 @media(prefers-reduced-motion:reduce){body.pv .galaxy-seoul-slideshow img{animation:none;opacity:0}body.pv .galaxy-seoul-slideshow img:first-child{opacity:1}}
 
-/* Official clinic logo in the patient header; preserve room for language switching. */
-body.pv header.top.light{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;max-width:100%;box-sizing:border-box}
-body.pv header.top.light .byul-official-brand{display:flex;align-items:center;flex:1 1 auto;min-width:0;max-width:min(48%,310px)}
-body.pv header.top.light .byul-official-brand img{display:block;width:100%;height:auto;max-height:55px;object-fit:contain;object-position:left center}
-body.pv header.top.light .lang{flex:0 1 auto;min-width:0;margin-left:auto;max-width:52%;justify-content:flex-end;flex-wrap:wrap;overflow:visible}
-body.pv header.top.light .lang button{white-space:nowrap}
-@media(max-width:560px){
- body.pv header.top.light{padding:10px 12px;gap:5px}
- body.pv header.top.light .byul-official-brand{max-width:42%}
- body.pv header.top.light .byul-official-brand img{max-height:44px}
- body.pv header.top.light .lang{max-width:58%;gap:1px}
- body.pv header.top.light .lang button{font-size:9px;padding:6px 5px;min-height:27px}
-}
-@media(max-width:360px){body.pv header.top.light .byul-official-brand{max-width:39%}body.pv header.top.light .lang{max-width:61%}body.pv header.top.light .lang button{font-size:8px;padding:5px 4px}}
 </style>
 </head>
 <body>
@@ -611,7 +597,7 @@ const consentText = () => tx(CONSENT_JA, CONSENT_EN);
 const opt = (list, cur) => `<option value="">${tx('選択してください', 'Select')}</option>` + list.map(([v, en]) => `<option value="${esc(v)}" ${cur === v ? 'selected' : ''}>${esc(tx(v, en))}</option>`).join('');
 
 function pHeader() {
-  return `<header class="top light"><div class="brand byul-official-brand"><img src="/byul-logo.png.png" alt="별성형외과 · BYUL PLASTIC SURGERY" loading="eager"></div>
+  return `<header class="top light"><div class="brand">${star(20)}<span>Galaxy</span></div><div class="sub"><b>별성형외과</b>${tx('オンライン事前相談', 'Online pre-consultation')}</div>
     <div class="lang" role="group" aria-label="Language"><button data-act="lang" data-v="ja" aria-pressed="${P.lang === 'ja'}">日本語</button><button data-act="lang" data-v="zh" aria-pressed="${P.lang === 'zh'}">中文</button><button data-act="lang" data-v="en" aria-pressed="${P.lang === 'en'}">English</button><button data-act="lang" data-v="ko" aria-pressed="${P.lang === 'ko'}">한국어</button></div></header>`;
 }
 function pTabs() {
