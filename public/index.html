@@ -532,7 +532,13 @@ function pIntake() {
   return `${bar}<div class="stack"><h2 class="disp">${tx('最後に、ご連絡先', 'Last step: your details')}</h2>
     <label class="f">${tx('お名前（ニックネーム可）', 'Name (a nickname is fine)')}<input type="text" id="name" data-bind="name" value="${esc(f.name)}" autocomplete="nickname"></label>
     <label class="f">${tx('LINE ID またはメールアドレス', 'LINE ID or email address')}<input type="text" id="contact" data-bind="contact" value="${esc(f.contact)}" autocomplete="email"></label>
-    <div class="notice" style="margin-top:10px">${tx('ご希望の場合、送信後に「相談予約」から日時を選んでスタッフに予約をリクエストできます。これまでの見積もり・チャット機能はそのまま使えます。', 'After submitting, you can optionally request an appointment from Booking. Estimates and chat remain available.')}</div>
+    <section class="card stack" style="margin-top:14px;padding:16px;background:#fff6fb;border:1px solid #f0c9df">
+<b>${tx('相談予約（任意）', 'Consultation appointment (optional)')}</b>
+<p class="muted small">${tx('希望日時を選んでください。スタッフが確定します。', 'Select a preferred date and time. Staff will confirm it.')}</p>
+<div class="chips">${days().map(d => `<button class="chip" data-act="day" data-v="${iso(d)}" aria-pressed="${P.slotDay === iso(d)}">${dayLabel(d)}</button>`).join('')}</div>
+<div class="slot-grid">${['10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00'].map(t => `<button class="chip" data-act="time" data-v="${t}" aria-pressed="${P.slotTime === t}">${t}</button>`).join('')}</div>
+<p class="muted small">${tx('日本・韓国時間。予約なしでも見積もりを申し込めます。', 'Japan/Korea time. Booking is optional.')}</p>
+</section>
     <p class="muted small" style="margin:0">${tx('お見積もり・ご相談の連絡以外には使用しません。返信はこのアプリのチャットでお知らせします。', 'Your contact details are used only for your estimate and consultation. Replies appear in this app’s chat.')}</p>
     <div class="notice legal">${consentText()}</div>
     <label class="row" style="align-items:flex-start;gap:10px;cursor:pointer"><input type="checkbox" id="consent" data-bind="consent" ${f.consent ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span class="small">${tx('上記の内容と、お預かりした写真・個人情報を相談対応の目的で韓国の病院が取り扱うことに同意します。', 'I agree to the above, and to 별성형외과 handling my photos and personal information in Korea for the purpose of this consultation.')}</span></label>
@@ -544,7 +550,9 @@ async function submitCase() {
   try {
     const { id, secret: sec } = await store.createCase({ name: f.name, age: f.age, procs: f.procs, concerns: f.concerns, budget: f.budget, visit: f.visit,
       history: f.history, contact: f.contact, photos: f.photos, source: route().source, ref: route().ref, lang: P.lang });
-    lsSet('galaxy_case', id); lsSet('galaxy_secret', sec); P.caseId = id; P.c = null; attachCase(); P.tab = 'result';
+    lsSet('galaxy_case', id); lsSet('galaxy_secret', sec); P.caseId = id; P.c = null;
+    if (P.slotDay && P.slotTime) { try { await store.requestSlot(`${P.slotDay}T${P.slotTime}`); } catch { toast(tx('予約リクエストに失敗しました。予約タブから再度お試しください。', 'Booking request failed. Please retry from Booking.')); } }
+    attachCase(); P.tab = 'result';
   } catch (e) { toast(tx('送信できませんでした。通信状況を確認して、もう一度お試しください。', 'Could not send. Please check your connection and try again.')); }
   P.busy = false; renderPatient();
 }
