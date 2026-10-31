@@ -461,12 +461,12 @@ function pHeader() {
 }
 function pTabs() {
   const unread = P.c?.unreadPatient;
-  const t = [['result', tx('相談内容', 'Overview'), '☰'], ['chat', tx('チャット', 'Chat'), '✉'], ['book', tx('相談予約', 'Booking'), '▶'], ['after', tx('術後ケア', 'Aftercare'), '✚']];
+  const t = [['result', tx('相談内容', 'Overview'), '☰'], ['chat', tx('チャット', 'Chat'), '✉'], ['book', tx('相談予約', 'Booking'), '▶'], ['after', tx('術後ケア', 'Aftercare'), '✚'], ['travel', tx('韓国旅行', 'Travel'), '✈']];
   return `<div class="tabbar"><div class="in">${t.map(([k, l, i]) => `<button data-act="tab" data-v="${k}" aria-current="${P.tab === k}"><span aria-hidden="true">${i}</span>${l}${k === 'chat' && unread && P.tab !== 'chat' ? '<span class="dot"></span>' : ''}</button>`).join('')}</div></div>`;
 }
 function renderPatient() {
   document.documentElement.lang = P.lang; document.body.classList.add('pv');
-  const body = !P.caseId ? pIntake() : P.c ? ({ result: pResult, chat: pChat, book: pBook, after: pAfter }[P.tab])() : `<p class="muted">${tx('読み込み中…', 'Loading…')}</p>`;
+  const body = !P.caseId ? pIntake() : P.c ? ({ result: pResult, chat: pChat, book: pBook, after: pAfter, travel: pTravel }[P.tab])() : `<p class="muted">${tx('読み込み中…', 'Loading…')}</p>`;
   $('#app').innerHTML = `<div class="wrap">${pHeader()}<main>${body}</main>${P.caseId && P.c ? pTabs() : ''}</div>`;
   if (P.tab === 'chat' && P.caseId) { paintMsgs(); }
 }
@@ -649,12 +649,39 @@ async function requestSlot() {
   try { await store.requestSlot(`${P.slotDay}T${P.slotTime}`); toast(tx('希望日時を送信しました', 'Request sent')); } catch { toast(tx('送信できませんでした', 'Could not send')); }
 }
 
+/* --- Korea travel information: external links only, no third-party API --- */
+function pTravel() {
+  return `<div class="stack">
+    <h2 class="disp">${tx('韓国旅行ガイド', 'Explore Korea')}</h2>
+    <p class="muted small">${tx('滞在中の観光・食事・移動に役立つ情報です。予約や口コミは外部サイトでご確認ください。', 'Explore attractions, restaurants and transport during your stay. Reviews and bookings open on external websites.')}</p>
+    <div class="card stack">
+      <h3>Tripadvisor</h3>
+      <p class="small">${tx('ホテル・レストラン・観光スポットの口コミをチェック。', 'Find reviews of hotels, restaurants and attractions.')}</p>
+      <a class="btn block" style="text-align:center;text-decoration:none" href="https://www.tripadvisor.com/" target="_blank" rel="noopener noreferrer">${tx('Tripadvisor を開く ↗', 'Open Tripadvisor ↗')}</a>
+    </div>
+    <div class="card stack">
+      <h3>VISITKOREA</h3>
+      <p class="small">${tx('韓国観光公社の公式旅行情報。', 'Official travel information from the Korea Tourism Organization.')}</p>
+      <a class="btn ghost block" style="text-align:center;text-decoration:none" href="https://english.visitkorea.or.kr/" target="_blank" rel="noopener noreferrer">${tx('韓国観光情報を開く ↗', 'Open Korea travel guide ↗')}</a>
+    </div>
+    <div class="notice">${tx('手術後の外出・長距離移動・飛行機での帰国は、必ず担当医に確認してください。観光情報は医療上の助言ではありません。', 'After surgery, check with your surgeon before sightseeing, long-distance travel or flying home. Travel information is not medical advice.')}</div>
+  </div>`;
+}
+
 /* --- aftercare --- */
 function pAfter() {
   const t = P.c.triage, h = TRI[t];
   const last = t ? `<div class="card stack"><span class="badge ${h.cls}" style="align-self:flex-start">${tx(h.ja, h.en)}</span><div>${tx(h.msg, h.msgEn)}</div><div class="muted small">${tx('送信', 'Sent')}：${fmt(P.c.triageAt)}（${tx(`手術後${P.c.dayN || '—'}日目`, `day ${P.c.dayN || '—'} after surgery`)}）</div></div>` : '';
   return `<div class="stack"><h2 class="disp">${tx('術後ケア', 'Aftercare')}</h2>
     <p class="muted small" style="margin:0">${tx('帰国後も、写真と症状を送るとスタッフが確認します。以下は目安であり、診断ではありません。', 'Even after you return home, send photos and symptoms and our staff will review them. The guidance below is only a rough indication, not a diagnosis.')}</p>${last}
+    <section class="card stack" style="background:#fff9fc;border-color:#f2dce5">
+      <h3>${tx('術後のセルフケアガイド', 'Post-operative care guide')}</h3>
+      <p class="muted small">${tx('施術ごとに注意点が異なります。必ず担当医の指示を優先してください。', 'Instructions vary by procedure. Always follow your surgeon’s specific advice first.')}</p>
+      <div><b>${tx('休息・清潔', 'Rest and hygiene')}</b><p class="small">${tx('十分に休み、傷口や包帯は医療スタッフの指示どおりに管理してください。', 'Rest well and care for wounds and dressings exactly as instructed by your clinical team.')}</p></div>
+      <div><b>${tx('薬・通院', 'Medication and follow-up')}</b><p class="small">${tx('処方薬を指示どおりに使用し、再診日を守ってください。自己判断で薬を変更しないでください。', 'Take prescribed medicines as directed and attend follow-ups. Do not change medications without medical advice.')}</p></div>
+      <div><b>${tx('運動・飲酒・飛行機', 'Activity, alcohol and flights')}</b><p class="small">${tx('運動、飲酒、入浴、飛行機での移動を再開する時期は手術内容により異なります。担当医に確認してください。', 'Ask your surgeon when it is safe to resume exercise, alcohol, bathing and air travel; timing depends on the procedure.')}</p></div>
+      <div class="notice">${tx('強い痛み、急な腫れ、止まらない出血、発熱、呼吸困難などがある場合は、チャットの返信を待たずに医療機関へ緊急相談してください。', 'For severe pain, sudden swelling, uncontrolled bleeding, fever, breathing difficulty or other urgent symptoms, seek immediate medical attention rather than waiting for a chat reply.')}</div>
+    </section>
     <label class="f">${tx('手術後の日数', 'Days since surgery')}<input type="text" id="dayN" inputmode="numeric" placeholder="${tx('例：3', 'e.g. 3')}" value="${esc(P.dayN)}" data-bind="dayN"></label>
     <div><div style="font-weight:500;font-size:14px;margin-bottom:8px">${tx('当てはまる症状', 'Symptoms you have')}</div>
       <div class="chips">${SYMPTOMS.map(s => `<button class="chip" data-act="sym" data-v="${s.id}" aria-pressed="${P.sym.includes(s.id)}">${tx(s.ja, s.en)}</button>`).join('')}</div></div>
