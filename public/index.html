@@ -537,7 +537,7 @@ function pIntake() {
     <label class="row" style="align-items:flex-start;gap:10px;cursor:pointer"><input type="checkbox" id="consent" data-bind="consent" ${f.consent ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px"><span class="small">${tx('上記の内容と、お預かりした写真・個人情報を相談対応の目的で韓国の病院が取り扱うことに同意します。', 'I agree to the above, and to 별성형외과 handling my photos and personal information in Korea for the purpose of this consultation.')}</span></label>
     <div class="row">${back}<button class="btn cta" id="primary" data-act="submit" ${canNext() ? '' : 'disabled'} style="flex:1">${P.busy ? tx('送信中…', 'Sending…') : tx('無料の見積もりをすぐ見る', 'See my free estimate now')}</button></div></div>`;
 }
-async function submitCase() {
+async async function submitCase() {
   P.busy = true; renderPatient();
   const f = P.form;
   try {
@@ -636,7 +636,7 @@ function pBook() {
     <div class="slot-grid">${times.map(t => `<button class="chip" data-act="time" data-v="${t}" aria-pressed="${P.slotTime === t}">${t}</button>`).join('')}</div>
     <button class="btn block" data-act="reqslot" ${P.slotDay && P.slotTime ? '' : 'disabled'}>${tx('この日時で希望を送る', 'Request this time')}</button></div>`;
 }
-async function requestSlot() {
+async async function requestSlot() {
   try { await store.requestSlot(`${P.slotDay}T${P.slotTime}`); toast(tx('希望日時を送信しました', 'Request sent')); } catch { toast(tx('送信できませんでした', 'Could not send')); }
 }
 
