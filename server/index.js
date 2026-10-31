@@ -56,6 +56,22 @@ app.put('/api/config', staffOnly, (req, res) => {
   setCfg(next); res.json(next);
 });
 
+/* Public review submissions are stored privately for staff moderation. */
+db.exec("create table if not exists patient_reviews(id integer primary key autoincrement, created_at integer not null, nickname text not null, rating integer not null, body text not null, status text not null default 'pending')");
+app.post('/api/reviews', limit('review', 3, 3600e3), (req, res) => {
+  const b = req.body || {}, nickname = clean(b.nickname, 40), body = clean(b.body, 1000), rating = Number(b.rating);
+  if (nickname.length < 2 || body.length < 10 || !Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ error: 'invalid_review' });
+  db.prepare('insert into patient_reviews(created_at,nickname,rating,body,status) values(?,?,?,?,?)').run(Date.now(), nickname, rating, body, 'pending');
+  res.status(201).json({ ok: true, pending: true });
+});
+app.get('/api/reviews', (_req, res) => res.json(db.prepare("select nickname,rating,body,created_at from patient_reviews where status='approved' order by created_at desc limit 20").all()));
+app.get('/api/staff/reviews', staffOnly, (_req, res) => res.json(db.prepare("select * from patient_reviews order by created_at desc limit 100").all()));
+app.post('/api/staff/reviews/:id/status', staffOnly, (req, res) => {
+  const status = req.body?.status;
+  if (!['approved','rejected'].includes(status)) return res.status(400).json({ error: 'invalid_status' });
+  const result = db.prepare('update patient_reviews set status=? where id=?').run(status, Number(req.params.id));
+  res.json({ ok: result.changes > 0 });
+});
 /* ---------- 환자 API (case id + secret) ---------- */
 const sys = (caseId, at, ja) => messages.add(caseId, { from: 'sys', kind: 'sys', at, ja });
 const L = (c, ja, en) => (c.lang === 'en' ? en : ja); // 환자 언어(ja|en)에 맞는 문구
@@ -69,7 +85,7 @@ app.post('/api/cases', limit('newcase', 10, 3600e3), (req, res) => {
   const b = req.body || {}, cfg = getCfg(), now = Date.now();
   const procs = (Array.isArray(b.procs) ? b.procs : []).filter(id => cfg.procs.some(p => p.id === id)).slice(0, 9);
   const photos = (Array.isArray(b.photos) ? b.photos : []).slice(0, 3);
-  if (!procs.length || !clean(b.name, 60) || !clean(b.contact, 120) || photos.some(p => !validPhoto(p))) return res.status(400).json({ error: 'invalid' });
+  if (!clean(b.name, 60) || !clean(b.contact, 120) || photos.some(p => !validPhoto(p))) return res.status(400).json({ error: 'invalid' });
   const id = crypto.randomBytes(8).toString('hex'), secret = crypto.randomBytes(24).toString('hex');
   const c = { id, createdAt: now, lastAt: now, status: 'new', unreadStaff: true, unreadPatient: false,
     lang: b.lang === 'en' ? 'en' : 'ja', source: SOURCES.includes(b.source) ? b.source : 'direct', ref: clean(b.ref, 40) || null, stage: 'pre', triage: '', meeting: null,
