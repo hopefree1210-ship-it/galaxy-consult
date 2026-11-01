@@ -551,6 +551,20 @@ body.pv .galaxy-reel-box{display:flex;flex-direction:column;gap:6px}
 body.pv .galaxy-reel-box .galaxy-reel-link{flex-direction:row;align-items:center;width:100%;border:1px solid #EBCADB;text-align:left;cursor:pointer;font:inherit}
 body.pv .galaxy-reel-ext{font-size:12px;color:#A43C68;text-decoration:none;align-self:flex-end}
 body.pv .galaxy-reel-frame{display:block;width:100%;max-width:420px;height:620px;margin:0 auto;border:0;border-radius:16px;background:#fff}
+
+/* Always-visible consultation call to action on the patient landing page */
+body.pv .galaxy-floating-consult{position:fixed;right:max(15px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:110;max-width:calc(100vw - 30px);pointer-events:none}
+body.pv .galaxy-floating-consult button{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:13px 17px 13px 12px;border:2px solid rgba(255,255,255,.88);border-radius:20px;background:linear-gradient(135deg,#7E174A,#AE286D 62%,#6B215C);color:white;box-shadow:0 10px 30px rgba(85,10,51,.32);cursor:pointer;text-align:left;font-family:inherit;transition:transform .2s,box-shadow .2s}
+body.pv .galaxy-floating-consult button:hover{transform:translateY(-3px);box-shadow:0 13px 32px rgba(85,10,51,.4)}
+body.pv .galaxy-floating-consult button:focus-visible{outline:3px solid #3A154D;outline-offset:3px}
+body.pv .galaxy-floating-pointer{font-size:29px;line-height:1;display:inline-block;animation:galaxyFinger 2s ease-in-out infinite}
+body.pv .galaxy-floating-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+body.pv .galaxy-floating-copy strong{font-size:15px;line-height:1.2;font-weight:850;white-space:nowrap}
+body.pv .galaxy-floating-copy small{font-size:11px;color:#FFE4F0;white-space:nowrap}
+body.pv .galaxy-floating-arrow{font-size:22px;font-weight:800}
+@keyframes galaxyFinger{0%,100%{transform:translateY(0) rotate(-10deg)}50%{transform:translateY(-5px) rotate(0deg)}}
+@media(max-width:560px){body.pv .galaxy-floating-consult{left:15px;right:15px;bottom:max(12px,env(safe-area-inset-bottom))}body.pv .galaxy-floating-consult button{width:100%;justify-content:center;padding:13px 12px;border-radius:17px}body.pv .galaxy-floating-copy strong{font-size:15px}body.pv .galaxy-floating-arrow{margin-left:auto}}
+@media(prefers-reduced-motion:reduce){body.pv .galaxy-floating-pointer{animation:none}body.pv .galaxy-floating-consult button{transition:none}}
 </style>
 </head>
 <body>
@@ -714,7 +728,7 @@ function pTabs() {
 function renderPatient() {
   document.documentElement.lang = P.lang; document.body.classList.add('pv');
   const body = !P.caseId ? pIntake() : P.c ? ({ result: pResult, chat: pChat, book: pBook, after: pAfter, travel: pTravel }[P.tab])() : `<p class="muted">${tx('読み込み中…', 'Loading…')}</p>`;
-  $('#app').innerHTML = `<div class="wrap">${pHeader()}<main>${body}</main>${P.caseId && P.c ? pTabs() : ''}</div>`;
+  $('#app').innerHTML = `<div class="wrap">${pHeader()}<main>${body}</main>${P.caseId && P.c ? pTabs() : ''}</div>${!P.caseId && P.step === 0 ? `<div class="galaxy-floating-consult"><button type="button" data-act="floatingConsult" aria-label="${tx('無料相談を申し込む', 'Apply for a free consultation')}"><span class="galaxy-floating-pointer" aria-hidden="true">👆</span><span class="galaxy-floating-copy"><strong>${tx('無料相談を申し込む', 'Free consultation')}</strong><small>${tx('タップして相談を始める', 'Tap to get started')}</small></span><span aria-hidden="true" class="galaxy-floating-arrow">→</span></button></div>` : ''}`;
   if (!P.caseId && P.step === 0) loadGalaxyReviews();
   if (P.tab === 'chat' && P.caseId) { paintMsgs(); }
 }
@@ -1186,7 +1200,8 @@ document.addEventListener('click', async e => {
   if (a === 'zoomsrc') { lightbox(b.src); return; }
   if (route().view === 'staff') return staffAct(a, v, b);
   const f = P.form;
-  if (a === 'next') { P.step++; renderPatient(); window.scrollTo(0, 0); }
+  if (a === 'floatingConsult') { P.step = 1; renderPatient(); window.scrollTo({top:0,behavior:'smooth'}); }
+  else if (a === 'next') { P.step++; renderPatient(); window.scrollTo(0, 0); }
   else if (a === 'back') { P.step--; renderPatient(); }
   else if (a === 'goal') { const g = GOALS.find(x => x.id === v); f.procs = goalOn(g) ? f.procs.filter(id => !g.procs.includes(id)) : [...new Set([...f.procs, ...g.procs])]; renderPatient(); }
   else if (a === 'pick') { f[b.dataset.k] = f[b.dataset.k] === v ? '' : v; renderPatient(); }
