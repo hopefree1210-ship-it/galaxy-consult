@@ -36,3 +36,24 @@ export const DEFAULT_AVAIL = {
   weekly: { 0: [], 1: WEEKDAY_TIMES, 2: WEEKDAY_TIMES, 3: WEEKDAY_TIMES, 4: WEEKDAY_TIMES, 5: WEEKDAY_TIMES, 6: ['10:00', '11:00', '12:00'] },
   closed: [], leadHours: 24, horizonDays: 42,
 };
+
+/* 한국 체류 일정 시뮬레이션: 진료 가능 요일(avail.weekly/closed)에 맞춰 검진·시술·경과 확인·최종 확인 날짜를 배치.
+   병원의 실제 스케줄 규칙(수술 다음날 소독 등)은 확정 전 추정이며 담당의 확인이 필요하다. */
+const ymdAdd = (ymd, n) => { const d = new Date(ymd + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+export function simulateStay({ start, stay, surg }, avail) {
+  const isOpen = ymd => { if ((avail.closed || []).includes(ymd)) return false; const dow = new Date(ymd + 'T00:00:00Z').getUTCDay(); return (avail.weekly?.[dow] || []).length > 0; };
+  const firstOpen = (ymd, lim = 21) => { for (let i = 0; i <= lim; i++) { const d = ymdAdd(ymd, i); if (isOpen(d)) return d; } return null; };
+  const ev = [{ date: start, kind: 'arrive' }];
+  const exam = firstOpen(start); if (!exam) return null;
+  ev.push({ date: exam, kind: surg ? 'exam' : 'treat' });
+  let last = exam;
+  if (surg) {
+    const op = firstOpen(ymdAdd(exam, 1)); if (!op) return null; ev.push({ date: op, kind: 'surgery' }); last = op;
+    const chk = firstOpen(ymdAdd(op, 1)); if (chk) { ev.push({ date: chk, kind: 'check' }); last = chk; }
+  }
+  const target = ymdAdd(start, Math.max(1, stay) - 1);
+  if (stay > 2 || surg) { const fin = firstOpen(target > last ? target : ymdAdd(last, last === exam ? 1 : 0)); if (fin && fin > last) { ev.push({ date: fin, kind: 'final' }); last = fin; } }
+  ev.sort((a, b) => a.date.localeCompare(b.date));
+  const days = Math.round((Date.parse(last) - Date.parse(start)) / 86400e3) + 1;
+  return { events: ev, depart: last, days, extended: days > stay };
+}

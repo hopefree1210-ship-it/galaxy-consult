@@ -3,7 +3,8 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cases, messages, getCfg, setCfg, getAvail, setAvail, db } from './db.js';
-import { estimate, triage, SYMPTOM_LEVEL, PROC_EN } from './logic.js';
+import { refreshRate, liveRate } from './rate.js';
+import { estimate, triage, SYMPTOM_LEVEL, PROC_EN, simulateStay } from './logic.js';
 import { verifySignature, handleWebhook, nudge, igConfigured } from './instagram.js';
 
 export const app = express();
@@ -47,13 +48,27 @@ app.get('/api/staff/me', (req, res) => res.json({ authed: isStaff(req), instagra
 
 /* ---------- 설정(가격표) ---------- */
 app.get('/api/stats', (_req, res) => res.json({ consults: db.prepare('select count(*) n from cases').get().n }));
-app.get('/api/config', (_req, res) => res.json(getCfg()));
+/* 환율: 자동(실시간) 또는 수동. 자동 조회가 실패/오래되면 수동 환율 사용 */
+const effCfg = () => { const c = getCfg(), lv = c.rateMode === 'manual' ? null : liveRate(); return { ...c, rate: lv ? lv.rate : c.rate, rateLive: !!lv, rateAt: lv?.at || 0 }; };
+refreshRate().catch(() => {}); setInterval(() => refreshRate().catch(() => {}), 3600e3).unref();
+app.get('/api/config', async (_req, res) => { await refreshRate().catch(() => {}); const c = effCfg(); res.json({ rate: c.rate, manualRate: getCfg().rate, rateMode: c.rateMode === 'manual' ? 'manual' : 'auto', rateLive: c.rateLive, rateAt: c.rateAt, procs: c.procs }); });
 app.put('/api/config', staffOnly, (req, res) => {
-  const { rate, procs } = req.body || {};
+  const { rate, procs, rateMode } = req.body || {};
   const old = getCfg();
   if (!(rate > 0 && rate < 1) || !Array.isArray(procs)) return res.status(400).json({ error: 'invalid' });
-  const next = { rate, procs: old.procs.map(p => { const n = procs.find(x => x.id === p.id) || p; return { ...p, min: Math.max(0, +n.min || 0), max: Math.max(0, +n.max || 0), stay: Math.max(1, +n.stay || 1) }; }) };
-  setCfg(next); res.json(next);
+  const next = { rate, rateMode: rateMode === 'manual' ? 'manual' : 'auto', procs: old.procs.map(p => { const n = procs.find(x => x.id === p.id) || p; return { ...p, min: Math.max(0, +n.min || 0), max: Math.max(0, +n.max || 0), stay: Math.max(1, +n.stay || 1) }; }) };
+  setCfg(next); const c = effCfg(); res.json({ rate: c.rate, manualRate: rate, rateMode: next.rateMode, rateLive: c.rateLive, rateAt: c.rateAt, procs: next.procs });
+});
+
+/* 체류 일정 시뮬레이션 (공개): 도착일과 시술 목록 → 검진·시술·경과 확인·최종 확인 날짜 */
+app.get('/api/schedule-sim', limit('sim', 600, 3600e3), (req, res) => {
+  const start = String(req.query.start || ''), ids = String(req.query.procs || '').split(',').filter(Boolean).slice(0, 9);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || isNaN(Date.parse(start)) || !ids.length) return res.status(400).json({ error: 'invalid' });
+  const today = jstYmd(Date.now()); if (start < today || start > jstYmd(Date.now() + 365 * 86400e3)) return res.status(400).json({ error: 'range' });
+  const e = estimate(ids, getCfg()); if (!e.krwMax) return res.status(400).json({ error: 'invalid' });
+  const sim = simulateStay({ start, stay: e.stay, surg: e.surg }, getAvail());
+  if (!sim) return res.status(409).json({ error: 'no_open_days' });
+  res.json({ ...sim, stay: e.stay, surg: e.surg });
 });
 
 /* Public review submissions are stored privately for staff moderation. */
@@ -82,7 +97,7 @@ function patientAuth(req, res, next) {
 }
 const SOURCES = ['ig', 'tiktok', 'line', 'x', 'yt', 'direct'];
 app.post('/api/cases', limit('newcase', 10, 3600e3), (req, res) => {
-  const b = req.body || {}, cfg = getCfg(), now = Date.now();
+  const b = req.body || {}, cfg = effCfg(), now = Date.now();
   const procs = (Array.isArray(b.procs) ? b.procs : []).filter(id => cfg.procs.some(p => p.id === id)).slice(0, 9);
   const photos = (Array.isArray(b.photos) ? b.photos : []).slice(0, 3);
   if (!clean(b.name, 60) || !clean(b.contact, 120) || photos.some(p => !validPhoto(p))) return res.status(400).json({ error: 'invalid' });
@@ -99,7 +114,7 @@ app.post('/api/cases', limit('newcase', 10, 3600e3), (req, res) => {
 });
 /* International quick consultation: creates an ordinary case visible in staff inbox. */
 app.post('/api/consultations/free', limit('freeconsult', 8, 3600e3), (req, res) => {
-  const b = req.body || {}, now = Date.now(), cfg = getCfg();
+  const b = req.body || {}, now = Date.now(), cfg = effCfg();
   const name = clean(b.name, 60), contact = clean(b.contact, 120);
   const country = clean(b.country, 60), channel = clean(b.channel, 30);
   const concerns = clean(b.concerns, 1500);

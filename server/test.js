@@ -93,4 +93,22 @@ await ok('예약 미확정 상태 상담 시작 차단 및 접근 권한 검증'
   assert.equal((await j('/api/staff/availability')).s, 401);
   assert.equal((await j(`/api/cases/${id}/consultation/start`, { method: 'POST', headers: S })).s, 409);
 });
+await ok('환율 자동/수동 적용 및 체류 일정 시뮬레이션', async () => {
+  const { setLiveRateForTest } = await import('./rate.js');
+  setLiveRateForTest(0.2);
+  let c = (await j('/api/config')).b; assert.equal(c.rate, 0.2); assert.equal(c.rateLive, true); assert.equal(c.rateMode, 'auto');
+  const H = { cookie: ck };
+  assert.equal((await j('/api/config', { method: 'PUT', headers: H, body: { rate: 0.11, rateMode: 'manual', procs: c.procs } })).s, 200);
+  c = (await j('/api/config')).b; assert.equal(c.rate, 0.11); assert.equal(c.rateMode, 'manual');
+  assert.equal((await j('/api/config', { method: 'PUT', headers: H, body: { rate: 0.11, rateMode: 'auto', procs: c.procs } })).s, 200);
+  assert.equal((await j('/api/config')).b.rate, 0.2);
+  const d = new Date(Date.now() + 5 * 86400e3 + 9 * 3600e3).toISOString().slice(0, 10);
+  const r = await j(`/api/schedule-sim?start=${d}&procs=sekkai`); assert.equal(r.s, 200);
+  const k = r.b.events.map(e => e.kind); assert.ok(k.includes('surgery') && k.includes('final') && k[0] === 'arrive');
+  assert.ok(r.b.days >= 7); assert.ok(r.b.depart >= d);
+  const dates = r.b.events.map(e => e.date); assert.deepEqual([...dates].sort(), dates);
+  const n = await j(`/api/schedule-sim?start=${d}&procs=botox`); assert.equal(n.s, 200); assert.ok(!n.b.events.some(e => e.kind === 'surgery'));
+  assert.equal((await j(`/api/schedule-sim?start=2020-01-01&procs=sekkai`)).s, 400);
+  assert.equal((await j(`/api/schedule-sim?start=${d}&procs=nope`)).s, 400);
+});
 srv.close();
