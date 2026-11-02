@@ -565,6 +565,23 @@ body.pv .galaxy-floating-arrow{font-size:22px;font-weight:800}
 @keyframes galaxyFinger{0%,100%{transform:translateY(0) rotate(-10deg)}50%{transform:translateY(-5px) rotate(0deg)}}
 @media(max-width:560px){body.pv .galaxy-floating-consult{left:15px;right:15px;bottom:max(12px,env(safe-area-inset-bottom))}body.pv .galaxy-floating-consult button{width:100%;justify-content:center;padding:13px 12px;border-radius:17px}body.pv .galaxy-floating-copy strong{font-size:15px}body.pv .galaxy-floating-arrow{margin-left:auto}}
 @media(prefers-reduced-motion:reduce){body.pv .galaxy-floating-pointer{animation:none}body.pv .galaxy-floating-consult button{transition:none}}
+
+body.pv .galaxy-contact-overlay[hidden]{display:none!important}
+body.pv .galaxy-contact-overlay{position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;justify-content:center}
+body.pv .galaxy-contact-backdrop{position:absolute;inset:0;background:rgba(23,12,25,.48)}
+body.pv .galaxy-contact-panel{position:relative;width:min(100%,520px);max-height:min(88dvh,760px);overflow-y:auto;box-sizing:border-box;background:#fff;border-radius:30px 30px 0 0;padding:14px 20px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -12px 35px rgba(0,0,0,.18)}
+body.pv .galaxy-contact-handle{height:4px;width:38px;background:#9099A4;border-radius:5px;margin:0 auto 16px}
+body.pv .galaxy-contact-panel h2{text-align:center;font-size:18px;margin:4px 0 22px;color:#201723}
+body.pv .galaxy-sheet-close{position:absolute;right:17px;top:12px;border:0;background:#f6edf2;border-radius:50%;width:32px;height:32px;font-size:23px;cursor:pointer}
+body.pv .galaxy-contact-links{display:flex;flex-direction:column;gap:3px}
+body.pv .galaxy-contact-links a{display:flex;align-items:center;gap:15px;min-height:69px;padding:9px 4px;text-decoration:none;color:#15161B;border-bottom:1px solid #F0EAF0}
+body.pv .galaxy-link-symbol{font-size:26px;color:#2A1C2C;width:35px;text-align:center}
+body.pv .galaxy-contact-links a>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+body.pv .galaxy-contact-links strong{font-size:16px;font-weight:800}
+body.pv .galaxy-contact-links small{font-size:12px;color:#687180;overflow-wrap:anywhere}
+body.pv .galaxy-link-chevron{color:#A0A0A8;font-size:25px}
+body.pv .galaxy-contact-start{display:block;width:100%;background:#851C53;color:white;border:0;border-radius:14px;padding:15px 12px;margin-top:18px;font-size:15px;font-weight:800;cursor:pointer}
+@media(min-width:700px){body.pv .galaxy-contact-overlay{align-items:center}body.pv .galaxy-contact-panel{border-radius:26px;padding-bottom:26px}}
 </style>
 </head>
 <body>
@@ -728,7 +745,12 @@ function pTabs() {
 function renderPatient() {
   document.documentElement.lang = P.lang; document.body.classList.add('pv');
   const body = !P.caseId ? pIntake() : P.c ? ({ result: pResult, chat: pChat, book: pBook, after: pAfter, travel: pTravel }[P.tab])() : `<p class="muted">${tx('読み込み中…', 'Loading…')}</p>`;
-  $('#app').innerHTML = `<div class="wrap">${pHeader()}<main>${body}</main>${P.caseId && P.c ? pTabs() : ''}</div>${!P.caseId && P.step === 0 ? `<div class="galaxy-floating-consult"><button type="button" data-act="floatingConsult" aria-label="${tx('無料相談を申し込む', 'Apply for a free consultation')}"><span class="galaxy-floating-pointer" aria-hidden="true">👆</span><span class="galaxy-floating-copy"><strong>${tx('無料相談を申し込む', 'Free consultation')}</strong><small>${tx('タップして相談を始める', 'Tap to get started')}</small></span><span aria-hidden="true" class="galaxy-floating-arrow">→</span></button></div>` : ''}`;
+  $('#app').innerHTML = `<div class="wrap">${pHeader()}<main>${body}</main>${P.caseId && P.c ? pTabs() : ''}</div>${!P.caseId && P.step === 0 ? `<div class="galaxy-floating-consult"><button type="button" data-act="floatingConsult" aria-label="${tx('無料相談を申し込む', 'Apply for a free consultation')}"><span class="galaxy-floating-pointer" aria-hidden="true">👆</span><span class="galaxy-floating-copy"><strong>${tx('無料相談を申し込む', 'Free consultation')}</strong><small>${tx('タップして相談を始める', 'Tap to get started')}</small></span><span aria-hidden="true" class="galaxy-floating-arrow">→</span></button></div><div id="galaxy-contact-sheet" class="galaxy-contact-overlay" hidden><div class="galaxy-contact-backdrop" data-act="closeConsultLinks"></div><section class="galaxy-contact-panel" role="dialog" aria-modal="true" aria-label="${tx('相談リンク', 'Consultation links')}"><div class="galaxy-contact-handle"></div><button class="galaxy-sheet-close" type="button" data-act="closeConsultLinks" aria-label="Close">×</button><h2>${tx('相談リンク', '상담 링크')}</h2><div class="galaxy-contact-links">
+<a href="https://www.instagram.com/byulstargrambb/" target="_blank" rel="noopener noreferrer"><span class="galaxy-link-symbol" aria-hidden="true">↗</span><span><strong>${tx('公式ホームページ', '홈페이지')}</strong><small>instagram.com/byulstargrambb</small></span><span class="galaxy-link-chevron">›</span></a>
+<a href="https://pf.kakao.com/_hxlKxcxd" target="_blank" rel="noopener noreferrer"><span class="galaxy-link-symbol" aria-hidden="true">↗</span><span><strong>${tx('カカオトーク相談', '카톡상담')}</strong><small>pf.kakao.com/_hxlKxcxd</small></span><span class="galaxy-link-chevron">›</span></a>
+<a href="https://byulstar.com/front/japan_landing/" target="_blank" rel="noopener noreferrer"><span class="galaxy-link-symbol" aria-hidden="true">↗</span><span><strong>NaverLine · ${tx('日本語案内', '일본어 안내')}</strong><small>byulstar.com/front/japan_landing/</small></span><span class="galaxy-link-chevron">›</span></a>
+<a href="https://line.me/R/ti/p/@173xmtar?ts=11251134&amp;oat_content=url" target="_blank" rel="noopener noreferrer"><span class="galaxy-link-symbol" aria-hidden="true">↗</span><span><strong>LINE · ${tx('直接相談', '바로 상담')}</strong><small>line.me/R/ti/p/@173xmtar</small></span><span class="galaxy-link-chevron">›</span></a>
+</div><button class="galaxy-contact-start" type="button" data-act="startIntakeFromSheet">${tx('Galaxyで相談を申し込む', 'Galaxy 상담 신청하기')} →</button></section></div>` : ''}`;
   if (!P.caseId && P.step === 0) loadGalaxyReviews();
   if (P.tab === 'chat' && P.caseId) { paintMsgs(); }
 }
@@ -1200,7 +1222,9 @@ document.addEventListener('click', async e => {
   if (a === 'zoomsrc') { lightbox(b.src); return; }
   if (route().view === 'staff') return staffAct(a, v, b);
   const f = P.form;
-  if (a === 'floatingConsult') { P.step = 1; renderPatient(); window.scrollTo({top:0,behavior:'smooth'}); }
+  if (a === 'floatingConsult') { const sheet=document.getElementById('galaxy-contact-sheet'); if(sheet){sheet.hidden=false;sheet.querySelector('.galaxy-sheet-close')?.focus();} }
+  else if (a === 'closeConsultLinks') { document.getElementById('galaxy-contact-sheet').hidden=true; }
+  else if (a === 'startIntakeFromSheet') { P.step=1; renderPatient();window.scrollTo({top:0,behavior:'smooth'}); }
   else if (a === 'next') { P.step++; renderPatient(); window.scrollTo(0, 0); }
   else if (a === 'back') { P.step--; renderPatient(); }
   else if (a === 'goal') { const g = GOALS.find(x => x.id === v); f.procs = goalOn(g) ? f.procs.filter(id => !g.procs.includes(id)) : [...new Set([...f.procs, ...g.procs])]; renderPatient(); }
