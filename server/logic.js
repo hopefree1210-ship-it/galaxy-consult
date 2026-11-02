@@ -29,3 +29,10 @@ export function triage(symIds) {
 // 영어 시술명 (DB에 저장된 설정에 en이 없어도 동작하도록 id로 매핑)
 export const PROC_EN = { maibotsu: 'Double eyelid (suture)', sekkai: 'Double eyelid (incisional)', megashira: 'Epicanthoplasty / lateral canthoplasty', hana: 'Nose surgery',
   rinkaku: 'Facial contouring', shibo: 'Facial liposuction', lift: 'Lifting', botox: 'Botox / fillers', laser: 'Skin / laser' };
+
+/* 상담 가능 일정 기본값(예시). 직원 화면 "상담 일정"에서 병원의 실제 근무 시간으로 수정한다. 시간은 KST=JST. */
+const WEEKDAY_TIMES = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+export const DEFAULT_AVAIL = {
+  weekly: { 0: [], 1: WEEKDAY_TIMES, 2: WEEKDAY_TIMES, 3: WEEKDAY_TIMES, 4: WEEKDAY_TIMES, 5: WEEKDAY_TIMES, 6: ['10:00', '11:00', '12:00'] },
+  closed: [], leadHours: 24, horizonDays: 42,
+};

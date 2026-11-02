@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite'; // Node 내장 SQLite (별도 설치·컴파일 불필요)
 import fs from 'node:fs';
 import path from 'node:path';
-import { DEFAULT_CFG } from './logic.js';
+import { DEFAULT_CFG, DEFAULT_AVAIL } from './logic.js';
 
 const file = process.env.DB_FILE || './data/galaxy.db';
 if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -50,3 +50,8 @@ export const getCfg = () => {
   return r ? JSON.parse(r.value) : DEFAULT_CFG;
 };
 export const setCfg = c => db.prepare("insert into config(key,value) values('main',?) on conflict(key) do update set value=excluded.value").run(JSON.stringify(c));
+export const getAvail = () => {
+  const r = db.prepare("select value from config where key='avail'").get();
+  return r ? { ...DEFAULT_AVAIL, ...JSON.parse(r.value) } : DEFAULT_AVAIL;
+};
+export const setAvail = a => db.prepare("insert into config(key,value) values('avail',?) on conflict(key) do update set value=excluded.value").run(JSON.stringify(a));

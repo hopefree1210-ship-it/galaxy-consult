@@ -74,9 +74,23 @@ await ok('예약 미확정 상태 상담 시작 차단 및 접근 권한 검증'
   assert.equal((await j(`/api/cases/${id}/consultation/start`, { method: 'POST', headers: S })).s, 409);
   assert.equal((await j(`/api/staff/cases/${id}/consultation/start`, { method: 'POST' })).s, 401);
   assert.equal((await j(`/api/cases/${id}/consultation/start`, { method: 'POST', headers: { 'x-case-secret': 'wrong' } })).s, 404);
-  const tomorrow = new Date(Date.now() + 86400000).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul', hour12: false }).replace(' ', 'T').slice(0,16);
-  assert.equal((await j(`/api/cases/${id}/meeting`, { method: 'POST', headers: S, body: { at: tomorrow } })).s, 200);
-  assert.equal((await j(`/api/staff/cases/${id}/meeting`, { method: 'POST', headers: H, body: { at: tomorrow } })).s, 200);
+  const av = (await j('/api/availability')).b; const days = Object.keys(av.slots).sort();
+  assert.ok(days.length > 5);
+  const free = days.flatMap(d => av.slots[d].filter(x => x.free).map(x => `${d}T${x.t}`)); assert.ok(free.length >= 4);
+  const [s1, s2, s3] = free.slice(-3);
+  // 가능 일정이 아닌 시간 / 중복 / 4개 초과는 거부
+  assert.equal((await j(`/api/cases/${id}/meeting`, { method: 'POST', headers: S, body: { choices: ['2020-01-01T10:00'] } })).s, 409);
+  assert.equal((await j(`/api/cases/${id}/meeting`, { method: 'POST', headers: S, body: { choices: [s1, s1] } })).s, 400);
+  assert.equal((await j(`/api/cases/${id}/meeting`, { method: 'POST', headers: S, body: { choices: [s1, s2, s3, free[0]] } })).s, 400);
+  assert.equal((await j(`/api/cases/${id}/meeting`, { method: 'POST', headers: S, body: { choices: [s1, s2, s3] } })).s, 200);
+  const cc = (await j(`/api/cases/${id}`, { headers: S })).b; assert.deepEqual(cc.meeting.choices, [s1, s2, s3]); assert.equal(cc.meeting.at, s1);
+  assert.equal((await j(`/api/staff/cases/${id}/meeting`, { method: 'POST', headers: H, body: { at: s2 } })).s, 200);
+  // 확정된 시간은 마감되어 다른 환자가 고를 수 없다
+  const av2 = (await j('/api/availability')).b; assert.equal(av2.slots[s2.slice(0, 10)].find(x => x.t === s2.slice(11)).free, false);
+  assert.equal((await j(`/api/cases/${C.id}/meeting`, { method: 'POST', headers: { 'x-case-secret': C.secret }, body: { choices: [s2] } })).s, 409);
+  // 직원 설정: 형식 검증
+  assert.equal((await j('/api/staff/availability', { method: 'PUT', headers: H, body: { weekly: { 1: ['25:00'] } } })).s, 400);
+  assert.equal((await j('/api/staff/availability')).s, 401);
   assert.equal((await j(`/api/cases/${id}/consultation/start`, { method: 'POST', headers: S })).s, 409);
 });
 srv.close();

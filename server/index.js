@@ -2,7 +2,7 @@ import express from 'express';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { cases, messages, getCfg, setCfg, db } from './db.js';
+import { cases, messages, getCfg, setCfg, getAvail, setAvail, db } from './db.js';
 import { estimate, triage, SYMPTOM_LEVEL, PROC_EN } from './logic.js';
 import { verifySignature, handleWebhook, nudge, igConfigured } from './instagram.js';
 
@@ -131,12 +131,51 @@ app.post('/api/cases/:id/messages', patientAuth, limit('pmsg', 60, 3600e3), (req
   res.json({ ok: true });
 });
 const SLOT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/, YMD = /^\d{4}-\d{2}-\d{2}$/;
+const ACTIVE_MEET = ['confirmed', 'in_progress'];
+
+/* ---------- 상담 가능 일정 (KST=JST 기준) ---------- */
+const jstYmd = ms => new Date(ms + 9 * 3600e3).toISOString().slice(0, 10);
+function buildSlots() {
+  const a = getAvail(), now = Date.now(), earliest = now + a.leadHours * 3600e3;
+  const taken = new Set(cases.list().filter(c => ACTIVE_MEET.includes(c.meeting?.status)).map(c => c.meeting.at));
+  const out = {};
+  for (let i = 0; i <= a.horizonDays; i++) {
+    const ms = now + i * 86400e3, ymd = jstYmd(ms);
+    if (a.closed.includes(ymd)) continue;
+    const wd = new Date(ms + 9 * 3600e3).getUTCDay();
+    const list = (a.weekly[wd] || []).filter(t => Date.parse(`${ymd}T${t}:00+09:00`) >= earliest).map(t => ({ t, free: !taken.has(`${ymd}T${t}`) }));
+    if (list.length) out[ymd] = list;
+  }
+  return out;
+}
+app.get('/api/availability', limit('avail', 1200, 3600e3), (_req, res) => res.json({ slots: buildSlots(), leadHours: getAvail().leadHours }));
+app.get('/api/staff/availability', staffOnly, (_req, res) => res.json(getAvail()));
+app.put('/api/staff/availability', staffOnly, (req, res) => {
+  const b = req.body || {}, weekly = {};
+  for (let d = 0; d < 7; d++) {
+    const arr = b.weekly?.[d];
+    if (!Array.isArray(arr) || arr.length > 24 || arr.some(t => !TIME.test(String(t)))) return res.status(400).json({ error: 'invalid_times' });
+    weekly[d] = [...new Set(arr.map(String))].sort();
+  }
+  const closed = Array.isArray(b.closed) ? [...new Set(b.closed.map(String))].sort() : null;
+  const lead = Number(b.leadHours), hor = Number(b.horizonDays);
+  if (!closed || closed.length > 300 || closed.some(x => !YMD.test(x) || !Number.isFinite(Date.parse(x))) || !Number.isInteger(lead) || lead < 0 || lead > 720 || !Number.isInteger(hor) || hor < 7 || hor > 90) return res.status(400).json({ error: 'invalid' });
+  const next = { weekly, closed, leadHours: lead, horizonDays: hor };
+  setAvail(next); res.json(next);
+});
+const ORD_JA = ['第1希望', '第2希望', '第3希望'], ORD_EN = ['1st choice', '2nd choice', '3rd choice'];
 app.post('/api/cases/:id/meeting', patientAuth, (req, res) => {
-  const c = req.c, now = Date.now(), at = req.body?.at;
-  if (at === null) { c.meeting = null; cases.save(c); return res.json({ ok: true }); }
-  if (!SLOT.test(at || '') || !Number.isFinite(Date.parse(at + ':00+09:00')) || Date.parse(at + ':00+09:00') < now) return res.status(400).json({ error: 'invalid' });
-  c.meeting = { status: 'requested', at }; Object.assign(c, { lastAt: now, unreadStaff: true }); cases.save(c);
-  sys(c.id, now, L(c, `ビデオ相談の希望：${at.replace('T', ' ')}（確定までお待ちください）`, `Video consultation requested for ${at.replace('T', ' ')} (please wait for confirmation).`));
+  const c = req.c, now = Date.now(), b = req.body || {};
+  if (b.at === null) { c.meeting = null; cases.save(c); return res.json({ ok: true }); }
+  const choices = Array.isArray(b.choices) ? b.choices : [b.at];
+  if (choices.length < 1 || choices.length > 3 || new Set(choices).size !== choices.length || choices.some(x => !SLOT.test(x || '') || !Number.isFinite(Date.parse(x + ':00+09:00')))) return res.status(400).json({ error: 'invalid' });
+  const slots = buildSlots();
+  const bad = choices.find(x => !slots[x.slice(0, 10)]?.some(s => s.t === x.slice(11) && s.free));
+  if (bad) return res.status(409).json({ error: 'slot_unavailable', at: bad });
+  c.meeting = { status: 'requested', at: choices[0], choices }; Object.assign(c, { lastAt: now, unreadStaff: true }); cases.save(c);
+  const fm = x => x.replace('T', ' ');
+  sys(c.id, now, L(c, `ビデオ相談の希望日時：${choices.map((x, i) => `${ORD_JA[i]} ${fm(x)}`).join('／')}（確定までお待ちください）`, `Video consultation requested: ${choices.map((x, i) => `${ORD_EN[i]} ${fm(x)}`).join(' / ')} (please wait for confirmation).`));
   res.json({ ok: true });
 });
 app.post('/api/cases/:id/aftercare', patientAuth, limit('after', 20, 3600e3), (req, res) => {
@@ -196,7 +235,8 @@ app.post('/api/staff/cases/:id/consultation/end', staffOnly, staffCase, (req, re
 app.post('/api/staff/cases/:id/meeting', staffOnly, staffCase, (req, res) => {
   const c = req.c, now = Date.now(), at = clean(req.body?.at, 16), link = clean(req.body?.link, 500);
   if (!SLOT.test(at) || !Number.isFinite(Date.parse(at + ':00+09:00')) || Date.parse(at + ':00+09:00') < now || (link && !/^https:\/\//.test(link))) return res.status(400).json({ error: 'invalid' });
-  c.meeting = { status: 'confirmed', at, link }; Object.assign(c, { status: 'booked', lastAt: now, unreadPatient: true }); cases.save(c);
+  if (cases.list().some(o => o.id !== c.id && ACTIVE_MEET.includes(o.meeting?.status) && o.meeting.at === at)) return res.status(409).json({ error: 'slot_taken' });
+  c.meeting = { status: 'confirmed', at, link, choices: c.meeting?.choices }; Object.assign(c, { status: 'booked', lastAt: now, unreadPatient: true }); cases.save(c);
   sys(c.id, now, L(c, `ビデオ相談が確定しました：${at.replace('T', ' ')}（日本時間）。「ビデオ予約」タブから参加できます。`, `Your video consultation is confirmed: ${at.replace('T', ' ')} (Japan/Korea time). Join from the "Video" tab.`));
   nudge(c.ref); res.json({ ok: true });
 });
